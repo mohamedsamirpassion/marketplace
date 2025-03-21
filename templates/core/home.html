@@ -1,0 +1,33 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">Latest Cars</h1>
+        <div class="row">
+            {% for car in cars %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ car.title }}</h5>
+                        <p class="card-text">
+                            <strong>Brand:</strong> {{ car.brand }}<br>
+                            <strong>Price:</strong> EGP {{ car.price }}<br>
+                            <strong>Location:</strong> {{ car.location }}
+                        </p>
+                        <p class="card-text">{{ car.description }}</p>
+                    </div>
+                    <div class="card-footer text-muted">
+                        Posted by: {{ car.user.username }} on {{ car.created_at|date:"M d, Y" }}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-md-12">
+                <div class="alert alert-info">No cars available yet. Be the first to <a href="{% url 'submit_ad' %}">post an ad</a>!</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
