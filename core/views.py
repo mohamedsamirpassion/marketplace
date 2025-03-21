@@ -1,3 +1,21 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Car
+from .forms import CarForm
 
-# Create your views here.
+def home(request):
+    cars = Car.objects.filter(status='approved')
+    return render(request, 'core/home.html', {'cars': cars})
+
+@login_required
+def submit_ad(request):
+    if request.method == 'POST':
+        form = CarForm(request.POST)
+        if form.is_valid():
+            car = form.save(commit=False)
+            car.user = request.user
+            car.save()
+            return redirect('home')
+    else:
+        form = CarForm()
+    return render(request, 'core/submit_ad.html', {'form': form})

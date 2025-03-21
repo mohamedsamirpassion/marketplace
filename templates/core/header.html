@@ -1,0 +1,17 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/">Marketplace Platform</a>
+        <div class="navbar-nav ms-auto">
+            {% if user.is_authenticated %}
+                <a class="nav-link" href="{% url 'submit_ad' %}">Sell Car</a>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-link btn btn-link">Logout</button>
+                </form>
+            {% else %}
+                <a class="nav-link" href="{% url 'login' %}">Login</a>
+                <a class="nav-link" href="{% url 'signup' %}">Register</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
