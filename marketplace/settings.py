@@ -70,3 +70,6 @@ STATIC_URL = 'static/'  # For CSS/JS/images
 STATICFILES_DIRS = [BASE_DIR / 'static']  # Where your static files are stored
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_REDIRECT_URL = 'home'  # Redirect to homepage after login
+LOGOUT_REDIRECT_URL = 'home'  # Redirect to homepage after logout
