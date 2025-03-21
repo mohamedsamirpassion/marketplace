@@ -1,5 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib import admin
+from .models import Car
+
+@admin.register(Car)
+class CarAdmin(admin.ModelAdmin):
+    list_display = ('title', 'brand', 'price', 'status', 'user')
+    list_filter = ('status', 'brand')
+    search_fields = ('title', 'description')
 
 class Car(models.Model):
     STATUS_CHOICES = [
