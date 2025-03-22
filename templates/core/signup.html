@@ -6,19 +6,25 @@
         <div class="card">
             <div class="card-header">Create Account</div>
             <div class="card-body">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+                
                 <form method="POST">
                     {% csrf_token %}
                     <div class="mb-3">
                         <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="username" name="username" required>
+                        <input type="text" class="form-control" name="username" required>
                     </div>
                     <div class="mb-3">
                         <label for="password1" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password1" name="password1" required>
+                        <input type="password" class="form-control" name="password1" required>
                     </div>
                     <div class="mb-3">
                         <label for="password2" class="form-label">Confirm Password</label>
-                        <input type="password" class="form-control" id="password2" name="password2" required>
+                        <input type="password" class="form-control" name="password2" required>
                     </div>
                     <button type="submit" class="btn btn-primary">Sign Up</button>
                 </form>

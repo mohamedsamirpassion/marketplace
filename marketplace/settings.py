@@ -73,3 +73,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = 'home'  # Redirect to homepage after login
 LOGOUT_REDIRECT_URL = 'home'  # Redirect to homepage after logout
+LOGIN_URL = 'login'  # URL to redirect unauthenticated users
