@@ -57,9 +57,25 @@ class PendingModelAdmin(admin.ModelAdmin):
         self.message_user(request, "Selected pending models have been rejected.")
     reject_pending_models.short_description = "Reject selected pending models"
 
+class ListingAdmin(admin.ModelAdmin):
+    list_display = ('brand', 'model', 'year', 'seller', 'approved', 'date_posted')
+    list_filter = ('approved', 'brand', 'model')
+    search_fields = ('brand__name', 'model__name', 'seller__name')
+    actions = ['approve_listings', 'reject_listings']
+
+    def approve_listings(self, request, queryset):
+        queryset.update(approved=True)
+        self.message_user(request, "Selected listings have been approved.")
+    approve_listings.short_description = "Approve selected listings"
+
+    def reject_listings(self, request, queryset):
+        queryset.delete()
+        self.message_user(request, "Selected listings have been rejected.")
+    reject_listings.short_description = "Reject selected listings"
+
 admin.site.register(Brand, BrandAdmin)
 admin.site.register(Model, ModelAdmin)
 admin.site.register(PendingBrand, PendingBrandAdmin)
 admin.site.register(PendingModel, PendingModelAdmin)
-admin.site.register(Listing)
+admin.site.register(Listing, ListingAdmin)
 admin.site.register(ListingImage)

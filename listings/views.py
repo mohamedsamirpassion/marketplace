@@ -1,11 +1,12 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.contrib import messages
 from .models import Listing, ListingImage, Brand, Model, PendingBrand, PendingModel
 from .forms import ListingForm, ListingImageFormSet
 
 def home(request):
-    listings = Listing.objects.all()
+    listings = Listing.objects.filter(approved=True)  # Only show approved listings
     return render(request, 'listings/home.html', {'listings': listings})
 
 def listing_detail(request, pk):
@@ -21,18 +22,26 @@ def create_listing(request):
             # Handle brand
             brand_data = form.cleaned_data['brand']
             new_brand = form.cleaned_data['new_brand']
-            if isinstance(brand_data, str):  # New brand submitted
-                brand, _ = Brand.objects.get_or_create(name=new_brand, approved=False)
-                PendingBrand.objects.get_or_create(name=new_brand, submitted_by=request.user)
+            if str(brand_data) == 'other':
+                if new_brand:
+                    brand, _ = Brand.objects.get_or_create(name=new_brand, approved=False)
+                    PendingBrand.objects.get_or_create(name=new_brand, submitted_by=request.user)
+                else:
+                    messages.error(request, "Please specify a new brand.")
+                    return render(request, 'listings/create_listing.html', {'form': form, 'image_formset': image_formset})
             else:
                 brand = brand_data
 
             # Handle model
             model_data = form.cleaned_data['model']
             new_model = form.cleaned_data['new_model']
-            if isinstance(model_data, str):  # New model submitted
-                model, _ = Model.objects.get_or_create(brand=brand, name=new_model, approved=False)
-                PendingModel.objects.get_or_create(brand=brand, name=new_model, submitted_by=request.user)
+            if str(model_data) == 'other':
+                if new_model:
+                    model, _ = Model.objects.get_or_create(brand=brand, name=new_model, approved=False)
+                    PendingModel.objects.get_or_create(brand=brand, name=new_model, submitted_by=request.user)
+                else:
+                    messages.error(request, "Please specify a new model.")
+                    return render(request, 'listings/create_listing.html', {'form': form, 'image_formset': image_formset})
             else:
                 model = model_data
 
@@ -41,6 +50,7 @@ def create_listing(request):
             listing.seller = request.user
             listing.brand = brand
             listing.model = model
+            listing.approved = False  # Require admin approval
             listing.save()
 
             # Save images
@@ -48,6 +58,7 @@ def create_listing(request):
                 if image_form.cleaned_data.get('image'):
                     ListingImage.objects.create(listing=listing, image=image_form.cleaned_data['image'])
 
+            messages.success(request, "Your listing has been submitted for admin approval.")
             return redirect('home')
     else:
         form = ListingForm()
