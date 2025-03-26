@@ -15,6 +15,17 @@ def edit_profile(request):
         user = request.user
         user.name = request.POST['name']
         user.phone_number = request.POST['phone_number']
+        # Handle password change
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        if new_password and confirm_password:
+            if new_password == confirm_password:
+                user.set_password(new_password)
+            else:
+                return render(request, 'users/edit_profile.html', {
+                    'user': user,
+                    'error': 'Passwords do not match.'
+                })
         user.save()
         return redirect('home')
     return render(request, 'users/edit_profile.html', {'user': request.user})
