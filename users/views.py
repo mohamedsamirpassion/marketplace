@@ -1,14 +1,23 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
 from .forms import SignUpForm
 from .models import User
-from django.utils.http import urlsafe_base64_decode
-from django.utils.encoding import force_str
+
+@login_required
+def edit_profile(request):
+    if request.method == 'POST':
+        user = request.user
+        user.name = request.POST['name']
+        user.phone_number = request.POST['phone_number']
+        user.save()
+        return redirect('home')
+    return render(request, 'users/edit_profile.html', {'user': request.user})
 
 def signup(request):
     if request.method == 'POST':
@@ -21,7 +30,7 @@ def signup(request):
             token = default_token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             domain = request.get_host()
-            link = f"http://{domain}/verify/{uid}/{token}/"
+            link = f"http://{domain}/accounts/verify/{uid}/{token}/"
             subject = "Verify Your Marketplace Account"
             message = render_to_string('registration/verification_email.html', {
                 'user': user,
@@ -31,7 +40,7 @@ def signup(request):
             return render(request, 'registration/signup_done.html')
     else:
         form = SignUpForm()
-    return render(request, 'registration/signup.html', {'form': form})
+    return render(request, 'users/signup.html', {'form': form})
 
 def verify_email(request, uidb64, token):
     try:

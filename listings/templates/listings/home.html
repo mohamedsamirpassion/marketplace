@@ -8,7 +8,23 @@
                 <a href="{% url 'listing_detail' listing.pk %}" class="text-decoration-none text-dark">
                     <div class="card h-100">
                         {% if listing.images.all %}
-                            <img src="{{ listing.images.first.image.url }}" class="card-img-top" alt="{{ listing.title }}" style="height: 200px; object-fit: cover;">
+                            <div id="carousel-{{ listing.pk }}" class="carousel slide" data-bs-ride="carousel">
+                                <div class="carousel-inner">
+                                    {% for image in listing.images.all %}
+                                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                            <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ listing.title }}" style="height: 200px; object-fit: cover;">
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ listing.pk }}" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Previous</span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ listing.pk }}" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Next</span>
+                                </button>
+                            </div>
                         {% endif %}
                         <div class="card-body">
                             <h5 class="card-title">{{ listing.title }}</h5>

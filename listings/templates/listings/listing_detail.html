@@ -29,10 +29,26 @@
             <p><strong>Mileage:</strong> {{ listing.mileage }} km</p>
             <p><strong>Location:</strong> {{ listing.location }}</p>
             <p><strong>Condition:</strong> {{ listing.condition }}</p>
-            <p><strong>Description:</strong> {{ listing.description }}</p>
-            <p><strong>Seller:</strong> {{ listing.seller.email }}</p>
+            <p><strong>Seller:</strong> {{ listing.seller.name }}</p>
             <p><strong>Posted:</strong> {{ listing.date_posted|date }}</p>
+            <p>
+                <strong>Contact Seller:</strong>
+                <span id="phone-hidden">****-****-****</span>
+                <span id="phone-reveal" style="display: none;">{{ listing.seller.phone_number }}</span>
+                <button class="btn btn-link p-0 ms-2" onclick="revealPhone()">Reveal Phone</button>
+            </p>
         </div>
     </div>
+    <div class="mt-3">
+        <h3>Description</h3>
+        <p>{{ listing.description }}</p>
+    </div>
     <a href="{% url 'home' %}" class="btn btn-secondary mt-3">Back to Listings</a>
+    <script>
+        function revealPhone() {
+            document.getElementById('phone-hidden').style.display = 'none';
+            document.getElementById('phone-reveal').style.display = 'inline';
+            this.style.display = 'none';
+        }
+    </script>
 {% endblock %}

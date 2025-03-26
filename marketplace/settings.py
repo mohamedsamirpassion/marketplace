@@ -143,3 +143,15 @@ MEDIA_ROOT = BASE_DIR / 'media'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 #AUTHENTICATION_BACKENDS = ['users.backends.EmailBackend']
+
+# ... (existing settings) ...
+
+# Email Configuration (for testing, use console backend)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Prints emails to console
+# For production, use SMTP (e.g., Gmail):
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'your-email@gmail.com'
+# EMAIL_HOST_PASSWORD = 'your-app-password'
