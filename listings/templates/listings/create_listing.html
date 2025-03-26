@@ -7,10 +7,56 @@
         {{ form.as_p }}
         <h3>Upload Images (up to 10)</h3>
         {{ image_formset.management_form }}
-        {% for form in image_formset %}
-            <div class="mb-3">{{ form.as_p }}</div>
-        {% endfor %}
+        <div class="image-upload-grid">
+            {% for form in image_formset %}
+                <div class="image-upload-slot">
+                    {{ form.image }}
+                </div>
+            {% endfor %}
+        </div>
+        <p class="text-muted mt-2">For the cover picture, we recommend using landscape mode.</p>
         <button type="submit" class="btn btn-success">Submit</button>
         <a href="{% url 'home' %}" class="btn btn-secondary">Back to Home</a>
     </form>
+
+    <style>
+        .image-upload-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .image-upload-slot {
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+            background-color: #f9f9f9;
+            position: relative;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .image-upload-slot input[type="file"] {
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: pointer;
+        }
+        .image-upload-slot::before {
+            content: "+";
+            font-size: 24px;
+            color: #ccc;
+            position: absolute;
+            pointer-events: none;
+        }
+        .image-upload-slot input[type="file"]:hover + ::before,
+        .image-upload-slot input[type="file"]:focus + ::before {
+            color: #0d6efd;
+        }
+    </style>
 {% endblock %}

@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.core.mail import send_mail
 from .models import User
 
 class UserAdmin(BaseUserAdmin):
@@ -22,7 +23,7 @@ class UserAdmin(BaseUserAdmin):
         }),
     )
     
-    actions = ['suspend_users', 'activate_users']
+    actions = ['suspend_users', 'activate_users', 'reset_passwords']
 
     def suspend_users(self, request, queryset):
         queryset.update(is_active=False)
@@ -34,4 +35,28 @@ class UserAdmin(BaseUserAdmin):
         self.message_user(request, "Selected users have been activated.")
     activate_users.short_description = "Activate selected users"
 
+    def reset_passwords(self, request, queryset):
+        for user in queryset:
+            # Generate a temporary password
+            temp_password = User.objects.make_random_password()
+            user.set_password(temp_password)
+            user.save()
+            # Send email with temporary password
+            subject = "Your Marketplace Password Has Been Reset"
+            message = f"""
+            Hello {user.name},
+
+            An admin has reset your password. Your temporary password is:
+
+            {temp_password}
+
+            Please log in and change your password immediately at: http://{request.get_host()}/edit-profile/
+
+            Thanks,
+            The Marketplace Team
+            """
+            send_mail(subject, message, 'noreply@marketplace.com', [user.email])
+        self.message_user(request, "Selected users' passwords have been reset and emails sent.")
+    reset_passwords.short_description = "Reset passwords for selected users"
+    
 admin.site.register(User, UserAdmin)
