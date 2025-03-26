@@ -4,7 +4,33 @@
     <h1 class="mb-4">Post a Car Listing</h1>
     <form method="post" enctype="multipart/form-data" class="w-75">
         {% csrf_token %}
-        {{ form.as_p }}
+        {{ form.non_field_errors }}
+        <div class="mb-3">
+            <label for="id_brand" class="form-label">Brand</label>
+            {{ form.brand }}
+            {{ form.brand.errors }}
+        </div>
+        <div class="mb-3" id="new-brand-field" style="display: none;">
+            <label for="id_new_brand" class="form-label">New Brand</label>
+            {{ form.new_brand }}
+            {{ form.new_brand.errors }}
+        </div>
+        <div class="mb-3">
+            <label for="id_model" class="form-label">Model</label>
+            {{ form.model }}
+            {{ form.model.errors }}
+        </div>
+        <div class="mb-3" id="new-model-field" style="display: none;">
+            <label for="id_new_model" class="form-label">New Model</label>
+            {{ form.new_model }}
+            {{ form.new_model.errors }}
+        </div>
+        {{ form.year }}
+        {{ form.price }}
+        {{ form.mileage }}
+        {{ form.location }}
+        {{ form.condition }}
+        {{ form.description }}
         <h3>Upload Images (up to 10)</h3>
         {{ image_formset.management_form }}
         <div class="image-upload-grid">
@@ -59,4 +85,35 @@
             color: #0d6efd;
         }
     </style>
+
+    <script>
+        document.getElementById('id_brand').addEventListener('change', function() {
+            const newBrandField = document.getElementById('new-brand-field');
+            if (this.value === 'other') {
+                newBrandField.style.display = 'block';
+            } else {
+                newBrandField.style.display = 'none';
+            }
+            // Update model dropdown based on selected brand
+            fetch(`/get-models/?brand_id=${this.value}`)
+                .then(response => response.json())
+                .then(data => {
+                    const modelSelect = document.getElementById('id_model');
+                    modelSelect.innerHTML = '<option value="">Select a model</option>';
+                    data.models.forEach(model => {
+                        modelSelect.innerHTML += `<option value="${model.id}">${model.name}</option>`;
+                    });
+                    modelSelect.innerHTML += '<option value="other">Other</option>';
+                });
+        });
+
+        document.getElementById('id_model').addEventListener('change', function() {
+            const newModelField = document.getElementById('new-model-field');
+            if (this.value === 'other') {
+                newModelField.style.display = 'block';
+            } else {
+                newModelField.style.display = 'none';
+            }
+        });
+    </script>
 {% endblock %}

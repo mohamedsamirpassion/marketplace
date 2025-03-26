@@ -12,7 +12,7 @@
                                 <div class="carousel-inner">
                                     {% for image in listing.images.all %}
                                         <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                                            <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ listing.title }}" style="height: 200px; object-fit: cover;">
+                                            <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ listing.brand.name }} {{ listing.model.name }}" style="height: 200px; object-fit: cover;">
                                         </div>
                                     {% endfor %}
                                 </div>
@@ -27,7 +27,7 @@
                             </div>
                         {% endif %}
                         <div class="card-body">
-                            <h5 class="card-title">{{ listing.title }}</h5>
+                            <h5 class="card-title">{{ listing.brand.name }} {{ listing.model.name }} ({{ listing.year }})</h5>
                             <p class="card-text">
                                 <i class="bi bi-currency-dollar"></i> {{ listing.price }} EGP<br>
                                 <i class="bi bi-speedometer2"></i> {{ listing.mileage }} km<br>

@@ -1,28 +1,62 @@
 from django.db import models
-from users.models import User
+from django.contrib.auth import get_user_model
 
-class CarListing(models.Model):
-    title = models.CharField(max_length=200)
-    price = models.DecimalField(max_digits=15, decimal_places=2)
-    description = models.TextField()
-    category = models.CharField(max_length=50, default="Cars")
-    condition = models.CharField(max_length=20, choices=[('new', 'New'), ('used', 'Used')])
-    year = models.IntegerField()
-    make = models.CharField(max_length=50)
-    model = models.CharField(max_length=50)
-    mileage = models.IntegerField()
-    location = models.CharField(max_length=100)
-    seller = models.ForeignKey(User, on_delete=models.CASCADE)
-    date_posted = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(
-        max_length=20,
-        choices=[('pending', 'Pending'), ('approved', 'Approved'), ('rejected', 'Rejected')],
-        default='pending'
-    )
+User = get_user_model()
+
+class Brand(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    approved = models.BooleanField(default=True)  # Prebuilt brands are approved by default
 
     def __str__(self):
-        return f"{self.make} {self.model} - {self.title}"
+        return self.name
 
-class CarImage(models.Model):
-    car_listing = models.ForeignKey(CarListing, related_name='images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='car_images/')
+class Model(models.Model):
+    brand = models.ForeignKey(Brand, on_delete=models.CASCADE, related_name='models')
+    name = models.CharField(max_length=100)
+    approved = models.BooleanField(default=True)  # Prebuilt models are approved by default
+
+    class Meta:
+        unique_together = ('brand', 'name')  # Ensure no duplicate models per brand
+
+    def __str__(self):
+        return f"{self.brand.name} {self.name}"
+
+class PendingBrand(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    submitted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+class PendingModel(models.Model):
+    brand = models.ForeignKey(Brand, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    submitted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.brand.name} {self.name}"
+
+class Listing(models.Model):
+    seller = models.ForeignKey(User, on_delete=models.CASCADE)
+    brand = models.ForeignKey(Brand, on_delete=models.CASCADE)  # Replaces 'make'
+    model = models.ForeignKey(Model, on_delete=models.CASCADE)  # Replaces 'model'
+    year = models.IntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    mileage = models.IntegerField()
+    location = models.CharField(max_length=100)
+    condition = models.CharField(max_length=50, choices=[
+        ('New', 'New'),
+        ('Used', 'Used'),
+        ('Damaged', 'Damaged'),
+    ])
+    description = models.TextField()
+    date_posted = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.brand.name} {self.model.name} ({self.year})"
+
+class ListingImage(models.Model):
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='listing_images/')
