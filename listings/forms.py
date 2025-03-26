@@ -10,7 +10,7 @@ class ListingForm(forms.ModelForm):
 
     class Meta:
         model = Listing
-        fields = ['brand', 'model', 'year', 'price', 'mileage', 'location', 'condition', 'description']
+        fields = ['brand', 'model', 'year', 'price', 'mileage', 'governorate', 'city', 'condition', 'description']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -33,10 +33,16 @@ class ListingForm(forms.ModelForm):
         new_brand = cleaned_data.get('new_brand')
         new_model = cleaned_data.get('new_model')
 
-        if str(brand) == 'other' and not new_brand:
-            self.add_error('new_brand', 'Please specify the new brand.')
-        if str(model) == 'other' and not new_model:
-            self.add_error('new_model', 'Please specify the new model.')
+        if str(brand) == 'other':
+            if not new_brand:
+                self.add_error('new_brand', 'Please specify the new brand.')
+            else:
+                cleaned_data['new_brand'] = new_brand
+        if str(model) == 'other':
+            if not new_model:
+                self.add_error('new_model', 'Please specify the new model.')
+            else:
+                cleaned_data['new_model'] = new_model
 
         return cleaned_data
 

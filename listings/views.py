@@ -6,7 +6,7 @@ from .models import Listing, ListingImage, Brand, Model, PendingBrand, PendingMo
 from .forms import ListingForm, ListingImageFormSet
 
 def home(request):
-    listings = Listing.objects.filter(approved=True)  # Only show approved listings
+    listings = Listing.objects.filter(approved=True)
     return render(request, 'listings/home.html', {'listings': listings})
 
 def listing_detail(request, pk):
@@ -21,27 +21,19 @@ def create_listing(request):
         if form.is_valid() and image_formset.is_valid():
             # Handle brand
             brand_data = form.cleaned_data['brand']
-            new_brand = form.cleaned_data['new_brand']
-            if str(brand_data) == 'other':
-                if new_brand:
-                    brand, _ = Brand.objects.get_or_create(name=new_brand, approved=False)
-                    PendingBrand.objects.get_or_create(name=new_brand, submitted_by=request.user)
-                else:
-                    messages.error(request, "Please specify a new brand.")
-                    return render(request, 'listings/create_listing.html', {'form': form, 'image_formset': image_formset})
+            new_brand = form.cleaned_data.get('new_brand')
+            if str(brand_data) == 'other' and new_brand:
+                brand, _ = Brand.objects.get_or_create(name=new_brand, approved=False)
+                PendingBrand.objects.get_or_create(name=new_brand, submitted_by=request.user)
             else:
                 brand = brand_data
 
             # Handle model
             model_data = form.cleaned_data['model']
-            new_model = form.cleaned_data['new_model']
-            if str(model_data) == 'other':
-                if new_model:
-                    model, _ = Model.objects.get_or_create(brand=brand, name=new_model, approved=False)
-                    PendingModel.objects.get_or_create(brand=brand, name=new_model, submitted_by=request.user)
-                else:
-                    messages.error(request, "Please specify a new model.")
-                    return render(request, 'listings/create_listing.html', {'form': form, 'image_formset': image_formset})
+            new_model = form.cleaned_data.get('new_model')
+            if str(model_data) == 'other' and new_model:
+                model, _ = Model.objects.get_or_create(brand=brand, name=new_model, approved=False)
+                PendingModel.objects.get_or_create(brand=brand, name=new_model, submitted_by=request.user)
             else:
                 model = model_data
 
@@ -50,7 +42,7 @@ def create_listing(request):
             listing.seller = request.user
             listing.brand = brand
             listing.model = model
-            listing.approved = False  # Require admin approval
+            listing.approved = False
             listing.save()
 
             # Save images
@@ -60,6 +52,8 @@ def create_listing(request):
 
             messages.success(request, "Your listing has been submitted for admin approval.")
             return redirect('home')
+        else:
+            messages.error(request, "Please correct the errors below.")
     else:
         form = ListingForm()
         image_formset = ListingImageFormSet(queryset=ListingImage.objects.none())

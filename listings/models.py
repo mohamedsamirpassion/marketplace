@@ -43,9 +43,40 @@ class Listing(models.Model):
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE)
     model = models.ForeignKey(Model, on_delete=models.CASCADE)
     year = models.IntegerField()
-    price = models.IntegerField()  # Changed to IntegerField
+    price = models.IntegerField()
     mileage = models.IntegerField()
-    location = models.CharField(max_length=100)
+    GOVERNORATES = [
+        ('Cairo', 'Cairo'),
+        ('Giza', 'Giza'),
+        ('Alexandria', 'Alexandria'),
+        ('Greater Cairo', 'Greater Cairo'),
+        ('Aswan', 'Aswan'),
+        ('Asyut', 'Asyut'),
+        ('Beheira', 'Beheira'),
+        ('Beni Suef', 'Beni Suef'),
+        ('Dakahlia', 'Dakahlia'),
+        ('Damietta', 'Damietta'),
+        ('Faiyum', 'Faiyum'),
+        ('Gharbia', 'Gharbia'),
+        ('Ismailia', 'Ismailia'),
+        ('Kafr El Sheikh', 'Kafr El Sheikh'),
+        ('Luxor', 'Luxor'),
+        ('Matruh', 'Matruh'),
+        ('Minya', 'Minya'),
+        ('Monufia', 'Monufia'),
+        ('New Valley', 'New Valley'),
+        ('North Sinai', 'North Sinai'),
+        ('Port Said', 'Port Said'),
+        ('Qalyubia', 'Qalyubia'),
+        ('Qena', 'Qena'),
+        ('Red Sea', 'Red Sea'),
+        ('Sharqia', 'Sharqia'),
+        ('Sohag', 'Sohag'),
+        ('South Sinai', 'South Sinai'),
+        ('Suez', 'Suez'),
+    ]
+    governorate = models.CharField(max_length=50, choices=GOVERNORATES)  # Replaces location
+    city = models.CharField(max_length=100, blank=True, null=True)  # Optional city
     condition = models.CharField(max_length=50, choices=[
         ('New', 'New'),
         ('Used', 'Used'),
@@ -53,10 +84,16 @@ class Listing(models.Model):
     ])
     description = models.TextField()
     date_posted = models.DateTimeField(auto_now_add=True)
-    approved = models.BooleanField(default=False)  # New field for admin approval
+    approved = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.brand.name} {self.model.name} ({self.year})"
+
+    @property
+    def full_location(self):
+        if self.city:
+            return f"{self.governorate} - {self.city}"
+        return self.governorate
 
 class ListingImage(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='images')

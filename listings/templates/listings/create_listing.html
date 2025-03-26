@@ -46,9 +46,14 @@
             {{ form.mileage.errors }}
         </div>
         <div class="mb-3">
-            <label for="id_location" class="form-label">Location</label>
-            {{ form.location }}
-            {{ form.location.errors }}
+            <label for="id_governorate" class="form-label">Governorate</label>
+            {{ form.governorate }}
+            {{ form.governorate.errors }}
+        </div>
+        <div class="mb-3">
+            <label for="id_city" class="form-label">City (optional)</label>
+            {{ form.city }}
+            {{ form.city.errors }}
         </div>
         <div class="mb-3">
             <label for="id_condition" class="form-label">Condition</label>
@@ -146,7 +151,6 @@
             }
         });
 
-        // Show file name after upload
         document.querySelectorAll('.image-upload-slot input[type="file"]').forEach(input => {
             input.addEventListener('change', function() {
                 const fileNameSpan = this.parentElement.querySelector('.file-name');
