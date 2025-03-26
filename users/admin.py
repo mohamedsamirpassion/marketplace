@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.core.mail import send_mail
+from django.utils.crypto import get_random_string
 from .models import User
 
 class UserAdmin(BaseUserAdmin):
@@ -23,6 +24,8 @@ class UserAdmin(BaseUserAdmin):
         }),
     )
     
+    readonly_fields = ('last_login', 'date_joined')  # Mark as read-only
+    
     actions = ['suspend_users', 'activate_users', 'reset_passwords']
 
     def suspend_users(self, request, queryset):
@@ -38,7 +41,7 @@ class UserAdmin(BaseUserAdmin):
     def reset_passwords(self, request, queryset):
         for user in queryset:
             # Generate a temporary password
-            temp_password = User.objects.make_random_password()
+            temp_password = get_random_string(length=12)  # Generate a 12-character random password
             user.set_password(temp_password)
             user.save()
             # Send email with temporary password
