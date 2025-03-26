@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}{{ listing.title }}{% endblock %}
+{% block content %}
+    <h1 class="mb-4">{{ listing.make }} {{ listing.model }} ({{ listing.year }})</h1>
+    <div class="row">
+        <div class="col-md-6">
+            {% if listing.images.all %}
+                <div id="carouselImages" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        {% for image in listing.images.all %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                <img src="{{ image.image.url }}" class="d-block w-100" alt="Car Image" style="height: 300px; object-fit: cover;">
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselImages" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselImages" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+        <div class="col-md-6">
+            <p><strong>Price:</strong> {{ listing.price }} EGP</p>
+            <p><strong>Mileage:</strong> {{ listing.mileage }} km</p>
+            <p><strong>Location:</strong> {{ listing.location }}</p>
+            <p><strong>Condition:</strong> {{ listing.condition }}</p>
+            <p><strong>Description:</strong> {{ listing.description }}</p>
+            <p><strong>Seller:</strong> {{ listing.seller.email }}</p>
+            <p><strong>Posted:</strong> {{ listing.date_posted|date }}</p>
+        </div>
+    </div>
+    <a href="{% url 'home' %}" class="btn btn-secondary mt-3">Back to Listings</a>
+{% endblock %}

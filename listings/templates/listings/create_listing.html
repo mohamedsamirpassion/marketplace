@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Post a Car Listing{% endblock %}
+{% block content %}
+    <h1 class="mb-4">Post a Car Listing</h1>
+    <form method="post" enctype="multipart/form-data" class="w-75">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <h3>Upload Images (up to 10)</h3>
+        {{ image_formset.management_form }}
+        {% for form in image_formset %}
+            <div class="mb-3">{{ form.as_p }}</div>
+        {% endfor %}
+        <button type="submit" class="btn btn-success">Submit</button>
+        <a href="{% url 'home' %}" class="btn btn-secondary">Back to Home</a>
+    </form>
+{% endblock %}
