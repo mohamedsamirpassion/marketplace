@@ -85,6 +85,7 @@ class Listing(models.Model):
     description = models.TextField()
     date_posted = models.DateTimeField(auto_now_add=True)
     approved = models.BooleanField(default=False)
+    rejection_reason = models.TextField(blank=True, null=True)  # New field for rejection reason
 
     def __str__(self):
         return f"{self.brand.name} {self.model.name} ({self.year})"

@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django import forms
+from django.core.mail import send_mail
 from .models import Brand, Model, PendingBrand, PendingModel, Listing, ListingImage, AdSpace
 
 class BrandAdmin(admin.ModelAdmin):
@@ -57,8 +59,11 @@ class PendingModelAdmin(admin.ModelAdmin):
         self.message_user(request, "Selected pending models have been rejected.")
     reject_pending_models.short_description = "Reject selected pending models"
 
+class RejectionForm(forms.Form):
+    rejection_reason = forms.CharField(widget=forms.Textarea, label="Reason for Rejection")
+
 class ListingAdmin(admin.ModelAdmin):
-    list_display = ('brand', 'model', 'year', 'seller', 'approved', 'date_posted')
+    list_display = ('brand', 'model', 'year', 'seller', 'approved', 'date_posted', 'rejection_reason')
     list_filter = ('approved', 'brand', 'model')
     search_fields = ('brand__name', 'model__name', 'seller__name')
     actions = ['approve_listings', 'reject_listings']
@@ -69,9 +74,38 @@ class ListingAdmin(admin.ModelAdmin):
     approve_listings.short_description = "Approve selected listings"
 
     def reject_listings(self, request, queryset):
-        queryset.delete()
-        self.message_user(request, "Selected listings have been rejected.")
+        if request.POST.get('post'):
+            form = RejectionForm(request.POST)
+            if form.is_valid():
+                rejection_reason = form.cleaned_data['rejection_reason']
+                for listing in queryset:
+                    listing.rejection_reason = rejection_reason
+                    listing.save()
+                    # Send email to the seller
+                    send_mail(
+                        subject='Your Listing Has Been Rejected',
+                        message=f'Your listing "{listing}" has been rejected for the following reason:\n\n{rejection_reason}\n\nPlease revise and resubmit if necessary.',
+                        from_email=None,  # Uses DEFAULT_FROM_EMAIL from settings
+                        recipient_list=[listing.seller.email],
+                        fail_silently=False,
+                    )
+                    listing.delete()
+                self.message_user(request, f"Selected listings have been rejected with reason: {rejection_reason}")
+                return
+        else:
+            form = RejectionForm()
+            return self.get_action_form_response(request, queryset, form, "Reject Listings")
     reject_listings.short_description = "Reject selected listings"
+
+    def get_action_form_response(self, request, queryset, form, action_title):
+        from django.http import HttpResponse
+        from django.template.response import TemplateResponse
+        return TemplateResponse(request, 'admin/action_with_form.html', {
+            'title': action_title,
+            'objects': queryset,
+            'form': form,
+            'action': 'reject_listings',
+        })
 
 class AdSpaceAdmin(admin.ModelAdmin):
     list_display = ('location_on_page', 'is_active')
