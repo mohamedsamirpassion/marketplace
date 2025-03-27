@@ -66,7 +66,7 @@
                             <label class="form-label">Image {{ forloop.counter }}</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-camera"></i></span>
-                                <input type="file" name="{{ form.image.name }}" id="{{ form.image.id_for_label }}" class="form-control" accept="image/*">
+                                <input type="file" name="form-{{ forloop.counter0 }}-image" id="{{ form.image.id_for_label }}" class="form-control" accept="image/*">
                             </div>
                         </div>
                     {% endfor %}
@@ -112,7 +112,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Brand/Model dropdown logic
             const brandSelect = document.querySelector('#id_brand');
             const modelSelect = document.querySelector('#id_model');
 
