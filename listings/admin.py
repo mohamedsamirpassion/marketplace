@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Brand, Model, PendingBrand, PendingModel, Listing, ListingImage
+from .models import Brand, Model, PendingBrand, PendingModel, Listing, ListingImage, AdSpace
 
 class BrandAdmin(admin.ModelAdmin):
     list_display = ('name', 'approved')
@@ -73,9 +73,14 @@ class ListingAdmin(admin.ModelAdmin):
         self.message_user(request, "Selected listings have been rejected.")
     reject_listings.short_description = "Reject selected listings"
 
+class AdSpaceAdmin(admin.ModelAdmin):
+    list_display = ('location_on_page', 'is_active')
+    list_filter = ('location_on_page', 'is_active')
+
 admin.site.register(Brand, BrandAdmin)
 admin.site.register(Model, ModelAdmin)
 admin.site.register(PendingBrand, PendingBrandAdmin)
 admin.site.register(PendingModel, PendingModelAdmin)
 admin.site.register(Listing, ListingAdmin)
 admin.site.register(ListingImage)
+admin.site.register(AdSpace, AdSpaceAdmin)

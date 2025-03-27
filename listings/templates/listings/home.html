@@ -1,50 +1,69 @@
 {% extends 'base.html' %}
 {% block title %}Car Listings{% endblock %}
 {% block content %}
-    <h1 class="mb-4">Car Listings</h1>
+    <!-- Top Banner Ad -->
+    {% for ad in ad_spaces %}
+        {% if ad.location_on_page == 'top_banner' and ad.is_active %}
+            <div class="mb-4 text-center">
+                {{ ad.ad_network_code|safe }}
+            </div>
+        {% endif %}
+    {% endfor %}
+
     <div class="row">
-        {% for listing in listings %}
-            <div class="col-md-4 mb-3">
-                <a href="{% url 'listing_detail' listing.pk %}" class="text-decoration-none text-dark">
-                    <div class="card h-100">
-                        {% if listing.images.all %}
-                            <div id="carousel-{{ listing.pk }}" class="carousel slide" data-bs-ride="carousel">
-                                <div class="carousel-inner">
-                                    {% for image in listing.images.all %}
-                                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                                            <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ listing.brand.name }} {{ listing.model.name }}" style="height: 200px; object-fit: cover;">
+        <div class="col-md-9">
+            <h1 class="mb-4">Car Listings</h1>
+            <div class="row">
+                {% for listing in listings %}
+                    <div class="col-md-4 mb-3">
+                        <a href="{% url 'listing_detail' listing.pk %}" class="text-decoration-none text-dark">
+                            <div class="card h-100">
+                                {% if listing.images.all %}
+                                    <div id="carousel-{{ listing.pk }}" class="carousel slide" data-bs-ride="carousel">
+                                        <div class="carousel-inner">
+                                            {% for image in listing.images.all %}
+                                                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                                    <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ listing.brand.name }} {{ listing.model.name }}" style="height: 200px; object-fit: cover;">
+                                                </div>
+                                            {% endfor %}
                                         </div>
-                                    {% endfor %}
-                                </div>
-                                {% if listing.images.all|length > 1 %}
-                                    <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ listing.pk }}" data-bs-slide="prev">
-                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                        <span class="visually-hidden">Previous</span>
-                                    </button>
-                                    <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ listing.pk }}" data-bs-slide="next">
-                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                        <span class="visually-hidden">Next</span>
-                                    </button>
+                                        <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ listing.pk }}" data-bs-slide="prev">
+                                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                            <span class="visually-hidden">Previous</span>
+                                        </button>
+                                        <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ listing.pk }}" data-bs-slide="next">
+                                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                            <span class="visually-hidden">Next</span>
+                                        </button>
+                                    </div>
                                 {% endif %}
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ listing.brand.name }} {{ listing.model.name }} ({{ listing.year }})</h5>
+                                    <p class="card-text">
+                                        <i class="bi bi-currency-dollar"></i> {{ listing.price }} EGP<br>
+                                        <i class="bi bi-speedometer2"></i> {{ listing.mileage }} km<br>
+                                        <i class="bi bi-geo-alt"></i> {{ listing.full_location }}
+                                    </p>
+                                </div>
                             </div>
-                        {% else %}
-                            <img src="https://via.placeholder.com/300x200?text=No+Image" class="card-img-top" alt="No Image" style="height: 200px; object-fit: cover;">
-                        {% endif %}
-                        <div class="card-body">
-                            <h5 class="card-title">{{ listing.brand.name }} {{ listing.model.name }} ({{ listing.year }})</h5>
-                            <p class="card-text">
-                                <i class="bi bi-currency-dollar"></i> {{ listing.price }} EGP<br>
-                                <i class="bi bi-speedometer2"></i> {{ listing.mileage }} km<br>
-                                <i class="bi bi-geo-alt"></i> {{ listing.full_location }}
-                            </p>
-                        </div>
+                        </a>
                     </div>
-                </a>
+                {% empty %}
+                    <div class="col-12">
+                        <p>No listings available.</p>
+                    </div>
+                {% endfor %}
             </div>
-        {% empty %}
-            <div class="col-12">
-                <p>No listings available.</p>
-            </div>
-        {% endfor %}
+        </div>
+        <!-- Sidebar Ad -->
+        <div class="col-md-3">
+            {% for ad in ad_spaces %}
+                {% if ad.location_on_page == 'sidebar' and ad.is_active %}
+                    <div class="sticky-top" style="top: 20px;">
+                        {{ ad.ad_network_code|safe }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
     </div>
 {% endblock %}

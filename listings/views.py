@@ -2,16 +2,20 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib import messages
-from .models import Listing, ListingImage, Model
+from .models import Listing, ListingImage, Model, AdSpace
 from .forms import ListingForm, ListingImageFormSet
 
 def home(request):
     listings = Listing.objects.filter(approved=True)
-    return render(request, 'listings/home.html', {'listings': listings})
+    ad_spaces = AdSpace.objects.filter(is_active=True)
+    print("Ad Spaces:", list(ad_spaces))  # Debug output to check ad spaces
+    return render(request, 'listings/home.html', {'listings': listings, 'ad_spaces': ad_spaces})
 
 def listing_detail(request, pk):
     listing = Listing.objects.get(pk=pk)
-    return render(request, 'listings/listing_detail.html', {'listing': listing})
+    ad_spaces = AdSpace.objects.filter(is_active=True)
+    print("Ad Spaces in Listing Detail:", list(ad_spaces))  # Debug output
+    return render(request, 'listings/listing_detail.html', {'listing': listing, 'ad_spaces': ad_spaces})
 
 @login_required
 def create_listing(request):
