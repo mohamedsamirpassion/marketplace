@@ -98,3 +98,16 @@ class Listing(models.Model):
 class ListingImage(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='listing_images/')
+
+class AdSpace(models.Model):
+    LOCATION_CHOICES = [
+        ('top_banner', 'Top Banner'),
+        ('sidebar', 'Sidebar'),
+        ('inline', 'Inline (Every 5th Listing)'),
+    ]
+    location_on_page = models.CharField(max_length=50, choices=LOCATION_CHOICES)
+    ad_network_code = models.TextField()  # Stores the ad network script (e.g., AdSense/Media.net code)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"AdSpace: {self.location_on_page}"

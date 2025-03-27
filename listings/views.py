@@ -16,20 +16,33 @@ def listing_detail(request, pk):
 @login_required
 def create_listing(request):
     if request.method == 'POST':
+        print("POST data:", request.POST)
+        print("FILES data:", request.FILES)
         form = ListingForm(request.POST)
         image_formset = ListingImageFormSet(request.POST, request.FILES)
-        if form.is_valid() and image_formset.is_valid():
-            listing = form.save(commit=False)
-            listing.seller = request.user
-            listing.approved = False
-            listing.save()
-            for image_form in image_formset:
-                if image_form.cleaned_data.get('image'):
-                    ListingImage.objects.create(listing=listing, image=image_form.cleaned_data['image'])
-            messages.success(request, "Your listing has been submitted successfully! One of our admins will review and approve it soon.")
-            return redirect('home')
+        if form.is_valid():
+            print("Listing form is valid")
+            if image_formset.is_valid():
+                print("Image formset is valid")
+                listing = form.save(commit=False)
+                listing.seller = request.user
+                listing.approved = False
+                listing.save()
+                for image_form in image_formset:
+                    image = image_form.cleaned_data.get('image')
+                    if image:
+                        print(f"Saving image: {image}")
+                        ListingImage.objects.create(listing=listing, image=image)
+                    else:
+                        print("No image in form:", image_form.cleaned_data)
+                messages.success(request, "Your listing has been submitted successfully! One of our admins will review and approve it soon.")
+                return redirect('home')
+            else:
+                print("Image formset errors:", image_formset.errors)
+                messages.error(request, "Please correct the image upload errors below.")
         else:
-            messages.error(request, "Please correct the errors below.")
+            print("Listing form errors:", form.errors)
+            messages.error(request, "Please correct the form errors below.")
     else:
         form = ListingForm()
         image_formset = ListingImageFormSet(queryset=ListingImage.objects.none())
