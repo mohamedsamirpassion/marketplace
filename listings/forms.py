@@ -1,20 +1,21 @@
 from django import forms
-from django.forms import modelformset_factory
+from django.forms import inlineformset_factory
 from .models import Listing, ListingImage, Brand, Model
 
 class ListingForm(forms.ModelForm):
     brand = forms.ModelChoiceField(queryset=Brand.objects.filter(approved=True), empty_label="Select a brand")
     model = forms.ModelChoiceField(queryset=Model.objects.none(), empty_label="Select a model")
-    new_brand = forms.CharField(max_length=100, required=False, label="New Brand (if not in list)", widget=forms.HiddenInput())
-    new_model = forms.CharField(max_length=100, required=False, label="New Model (if not in list)", widget=forms.HiddenInput())
 
     class Meta:
         model = Listing
         fields = ['brand', 'model', 'year', 'price', 'mileage', 'governorate', 'city', 'condition', 'description']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 4}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Brand choices: All approved brands, no "Other"
+        # Brand choices: All approved brands
         self.fields['brand'].queryset = Brand.objects.filter(approved=True)
         self.fields['brand'].choices = [(None, 'Select a brand')] + [(brand.id, brand.name) for brand in Brand.objects.filter(approved=True)]
         
@@ -32,7 +33,18 @@ class ListingForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        # Remove "Other" logic since we’re not using it anymore
         return cleaned_data
 
-ListingImageFormSet = modelformset_factory(ListingImage, fields=('image',), extra=10, max_num=10)
+class ListingImageForm(forms.ModelForm):
+    class Meta:
+        model = ListingImage
+        fields = ['image']
+
+ListingImageFormSet = inlineformset_factory(
+    Listing,
+    ListingImage,
+    form=ListingImageForm,
+    extra=3,
+    max_num=5,
+    can_delete=False
+)
