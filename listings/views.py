@@ -1,15 +1,43 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.contrib import messages
-from .models import Listing, ListingImage, Model, AdSpace
-from .forms import ListingForm, ListingImageFormSet
+from django.core.mail import send_mail
+from .models import Listing, ListingImage, Model, AdSpace, Brand
 
 def home(request):
     listings = Listing.objects.filter(approved=True)
     ad_spaces = AdSpace.objects.filter(is_active=True)
-    print("Ad Spaces:", list(ad_spaces))  # Debug output to check ad spaces
-    return render(request, 'listings/home.html', {'listings': listings, 'ad_spaces': ad_spaces})
+    
+    # Get filter parameters from the request
+    brand_id = request.GET.get('brand')
+    price_min = request.GET.get('price_min')
+    price_max = request.GET.get('price_max')
+    year = request.GET.get('year')
+    condition = request.GET.get('condition')
+
+    # Apply filters
+    if brand_id:
+        listings = listings.filter(brand_id=brand_id)
+    if price_min:
+        listings = listings.filter(price__gte=price_min)
+    if price_max:
+        listings = listings.filter(price__lte=price_max)
+    if year:
+        listings = listings.filter(year=year)
+    if condition:
+        listings = listings.filter(condition=condition)
+
+    # Get all brands for the filter dropdown
+    brands = Brand.objects.filter(approved=True)
+
+    context = {
+        'listings': listings,
+        'ad_spaces': ad_spaces,
+        'brands': brands,
+        'conditions': Listing._meta.get_field('condition').choices,  # Get condition choices
+    }
+    return render(request, 'listings/home.html', context)
 
 def listing_detail(request, pk):
     listing = Listing.objects.get(pk=pk)
@@ -64,3 +92,4 @@ def get_models(request):
         return JsonResponse({'models': [], 'error': f'Invalid brand_id: {str(e)}'}, status=400)
     except Exception as e:
         return JsonResponse({'models': [], 'error': f'Server error: {str(e)}'}, status=500)
+

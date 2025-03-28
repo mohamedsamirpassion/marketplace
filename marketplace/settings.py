@@ -15,7 +15,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 AUTH_USER_MODEL = 'users.User'  # Tell Django to use our custom model
 
 # Quick-start development settings - unsuitable for production
@@ -28,7 +27,6 @@ SECRET_KEY = 'django-insecure-eiupe4gi&tpr*1@ef4nm#$4mz#s6ryn%dmgm8_o@04f&ps6kqq
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -73,7 +71,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'marketplace.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
@@ -83,7 +80,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -103,7 +99,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -114,7 +109,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
@@ -140,14 +134,9 @@ LOGOUT_REDIRECT_URL = '/'  # Redirect to homepage after logout
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-#AUTHENTICATION_BACKENDS = ['users.backends.EmailBackend']
-
-# ... (existing settings) ...
-
 # Email Configuration (for testing, use console backend)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Prints emails to console
+DEFAULT_FROM_EMAIL = 'noreply@marketplace.com'  # Added for email sending
 # For production, use SMTP (e.g., Gmail):
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_HOST = 'smtp.gmail.com'
@@ -155,3 +144,5 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Prints email
 # EMAIL_USE_TLS = True
 # EMAIL_HOST_USER = 'your-email@gmail.com'
 # EMAIL_HOST_PASSWORD = 'your-app-password'
+
+#AUTHENTICATION_BACKENDS = ['users.backends.EmailBackend']

@@ -81,14 +81,24 @@ class ListingAdmin(admin.ModelAdmin):
                 for listing in queryset:
                     listing.rejection_reason = rejection_reason
                     listing.save()
-                    # Send email to the seller
-                    send_mail(
-                        subject='Your Listing Has Been Rejected',
-                        message=f'Your listing "{listing}" has been rejected for the following reason:\n\n{rejection_reason}\n\nPlease revise and resubmit if necessary.',
-                        from_email=None,  # Uses DEFAULT_FROM_EMAIL from settings
-                        recipient_list=[listing.seller.email],
-                        fail_silently=False,
-                    )
+                    # Debug: Check seller email
+                    print(f"Attempting to send email to seller: {listing.seller.email}")
+                    if not listing.seller.email:
+                        print(f"Warning: Seller email is empty for listing {listing}")
+                        self.message_user(request, f"Warning: No email address for seller of listing {listing}", level='warning')
+                        continue
+                    try:
+                        send_mail(
+                            subject='Your Listing Has Been Rejected',
+                            message=f'Your listing "{listing}" has been rejected for the following reason:\n\n{rejection_reason}\n\nPlease revise and resubmit if necessary.',
+                            from_email=None,  # Uses DEFAULT_FROM_EMAIL from settings
+                            recipient_list=[listing.seller.email],
+                            fail_silently=False,
+                        )
+                        print(f"Email sent successfully to {listing.seller.email}")
+                    except Exception as e:
+                        print(f"Failed to send email to {listing.seller.email}: {str(e)}")
+                        self.message_user(request, f"Failed to send email to {listing.seller.email}: {str(e)}", level='error')
                     listing.delete()
                 self.message_user(request, f"Selected listings have been rejected with reason: {rejection_reason}")
                 return
