@@ -33,7 +33,7 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-6 mb3">
                         <label for="id_governorate" class="form-label">Governorate *</label>
                         {{ form.governorate }}
                     </div>
@@ -128,8 +128,9 @@
 
             brandSelect.addEventListener('change', function() {
                 const brandId = this.value;
+                console.log('Selected brand ID:', brandId); // Debug: Log the selected brand ID
                 if (brandId) {
-                    fetch(`/get-models/?brand_id=${brandId}`)
+                    fetch(`/get_models/?brand_id=${brandId}`)  // Fixed URL to match urls.py
                         .then(response => {
                             console.log('Response status:', response.status);
                             return response.json();
@@ -137,16 +138,21 @@
                         .then(data => {
                             console.log('Data received:', data);
                             modelSelect.innerHTML = '<option value="">Select a model</option>';
-                            data.models.forEach(model => {
-                                const option = document.createElement('option');
-                                option.value = model.id;
-                                option.text = model.name;
-                                modelSelect.appendChild(option);
-                            });
+                            if (data.models && data.models.length > 0) {
+                                data.models.forEach(model => {
+                                    const option = document.createElement('option');
+                                    option.value = model.id;
+                                    option.text = model.name;
+                                    modelSelect.appendChild(option);
+                                });
+                            } else {
+                                console.log('No models available for this brand');
+                            }
                         })
                         .catch(error => console.error('Error fetching models:', error));
                 } else {
                     modelSelect.innerHTML = '<option value="">Select a model</option>';
+                    console.log('No brand selected');
                 }
             });
 
