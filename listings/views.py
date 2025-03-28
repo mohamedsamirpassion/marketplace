@@ -45,7 +45,8 @@ def home(request):
 
     # Get all brands and governorates for the filter dropdowns
     brands = Brand.objects.filter(approved=True)
-    governorates = [choice[0] for choice in Listing.GOVERNORATE_CHOICES]
+    # Get governorate choices from the governorate field
+    governorates = [choice[0] for choice in Listing._meta.get_field('governorate').choices]
     governorates.insert(0, 'Greater Cairo')  # Add "Greater Cairo" as the first option
 
     context = {
