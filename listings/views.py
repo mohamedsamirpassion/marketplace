@@ -45,7 +45,6 @@ def home(request):
 
     # Get all brands and governorates for the filter dropdowns
     brands = Brand.objects.filter(approved=True)
-    # Get governorate choices from the governorate field
     governorates = [choice[0] for choice in Listing._meta.get_field('governorate').choices]
     governorates.insert(0, 'Greater Cairo')  # Add "Greater Cairo" as the first option
 
@@ -76,10 +75,19 @@ def create_listing(request):
             listing.seller = request.user
             listing.approved = False
             listing.save()
-            image_formset = ListingImageFormSet(request.POST, request.FILES, instance=listing)
+            # Set the prefix to match the management form fields
+            image_formset = ListingImageFormSet(request.POST, request.FILES, instance=listing, prefix='images')
             if image_formset.is_valid():
                 print("Image formset is valid")
+                # Debug: Inspect the formset's cleaned data
+                for i, form in enumerate(image_formset):
+                    print(f"Form {i} cleaned data:", form.cleaned_data)
                 image_formset.save()
+                # Debug: Check the number of images saved
+                saved_images = ListingImage.objects.filter(listing=listing)
+                print("Number of images saved:", saved_images.count())
+                for img in saved_images:
+                    print("Saved image path:", img.image.url)
                 messages.success(request, "Your listing has been submitted successfully! One of our admins will review and approve it soon.")
                 return redirect('home')
             else:
@@ -89,10 +97,10 @@ def create_listing(request):
         else:
             print("Listing form errors:", form.errors)
             messages.error(request, "Please correct the form errors below.")
-            image_formset = ListingImageFormSet(request.POST, request.FILES)
+            image_formset = ListingImageFormSet(request.POST, request.FILES, prefix='images')
     else:
         form = ListingForm()
-        image_formset = ListingImageFormSet()
+        image_formset = ListingImageFormSet(prefix='images')
     return render(request, 'listings/create_listing.html', {'form': form, 'image_formset': image_formset})
 
 def get_models(request):

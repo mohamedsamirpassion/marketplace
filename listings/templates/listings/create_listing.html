@@ -70,7 +70,7 @@
                                     {% else %}
                                         <i class="bi bi-camera position-absolute top-50 start-50 translate-middle" style="font-size: 2rem; color: #6c757d;"></i>
                                     {% endif %}
-                                    <input type="file" name="form-{{ forloop.counter0 }}-image" id="{{ form.image.id_for_label }}" class="image-input d-none" accept="image/*">
+                                    <input type="file" name="images-{{ forloop.counter0 }}-image" id="{{ form.image.id_for_label }}" class="image-input d-none" accept="image/*">
                                     <img class="image-preview d-none w-100 h-100" style="object-fit: cover;" alt="Image Preview">
                                 </div>
                             </div>
