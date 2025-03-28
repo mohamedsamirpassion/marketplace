@@ -33,7 +33,7 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-6 mb3">
+                    <div class="col-md-6 mb-3">
                         <label for="id_governorate" class="form-label">Governorate *</label>
                         {{ form.governorate }}
                     </div>
@@ -59,6 +59,8 @@
             <div class="card-body">
                 <h3 class="card-title">Upload Images</h3>
                 <p class="text-muted">For the cover picture, we recommend using the landscape mode. You can upload up to 10 images.</p>
+                <!-- Debug: Display the number of forms -->
+                <p>Debug: Number of image forms: {{ image_formset.total_form_count }}</p>
                 {{ image_formset.management_form }}
                 <div class="row" id="image-upload-container">
                     {% for form in image_formset %}
@@ -128,9 +130,9 @@
 
             brandSelect.addEventListener('change', function() {
                 const brandId = this.value;
-                console.log('Selected brand ID:', brandId); // Debug: Log the selected brand ID
+                console.log('Selected brand ID:', brandId);
                 if (brandId) {
-                    fetch(`/get_models/?brand_id=${brandId}`)  // Fixed URL to match urls.py
+                    fetch(`/get_models/?brand_id=${brandId}`)
                         .then(response => {
                             console.log('Response status:', response.status);
                             return response.json();

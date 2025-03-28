@@ -41,7 +41,7 @@ def home(request):
     elif sort == 'highest_price':
         listings = listings.order_by('-price')
     else:
-        listings = listings.order_by('-created_at')  # Default: Newly listed (descending)
+        listings = listings.order_by('-date_posted')  # Default: Newly listed (descending)
 
     # Get all brands and governorates for the filter dropdowns
     brands = Brand.objects.filter(approved=True)
