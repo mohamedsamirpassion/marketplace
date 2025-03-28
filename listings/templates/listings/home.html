@@ -26,6 +26,15 @@
                         </select>
                     </div>
                     <div class="col-md-3 mb-3">
+                        <label for="governorate" class="form-label">Location</label>
+                        <select name="governorate" id="governorate" class="form-select">
+                            <option value="">All Locations</option>
+                            {% for gov in governorates %}
+                                <option value="{{ gov }}" {% if request.GET.governorate == gov %}selected{% endif %}>{{ gov }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
                         <label for="price_min" class="form-label">Price Min (EGP)</label>
                         <input type="number" name="price_min" id="price_min" class="form-control" value="{{ request.GET.price_min }}" placeholder="Min Price">
                     </div>
@@ -52,6 +61,24 @@
                     </div>
                 </div>
             </form>
+
+            <!-- Sorting Dropdown -->
+            <div class="mb-3 d-flex justify-content-end">
+                <form method="get" class="d-inline">
+                    <!-- Preserve existing filter parameters -->
+                    {% for key, value in request.GET.items %}
+                        {% if key != 'sort' %}
+                            <input type="hidden" name="{{ key }}" value="{{ value }}">
+                        {% endif %}
+                    {% endfor %}
+                    <label for="sort" class="form-label me-2">Sort by:</label>
+                    <select name="sort" id="sort" class="form-select d-inline w-auto" onchange="this.form.submit()">
+                        <option value="newly_listed" {% if request.GET.sort == "newly_listed" or not request.GET.sort %}selected{% endif %}>Newly Listed</option>
+                        <option value="lowest_price" {% if request.GET.sort == "lowest_price" %}selected{% endif %}>Lowest Price</option>
+                        <option value="highest_price" {% if request.GET.sort == "highest_price" %}selected{% endif %}>Highest Price</option>
+                    </select>
+                </form>
+            </div>
 
             <div class="row">
                 {% for listing in listings %}

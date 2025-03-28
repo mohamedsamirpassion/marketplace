@@ -44,7 +44,7 @@ ListingImageFormSet = inlineformset_factory(
     Listing,
     ListingImage,
     form=ListingImageForm,
-    extra=3,
-    max_num=5,
+    extra=10,  # Ensure this is 10
+    max_num=10,
     can_delete=False
 )

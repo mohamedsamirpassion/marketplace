@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib import messages
 from .models import Listing, ListingImage, Model, AdSpace, Brand
-from .forms import ListingForm, ListingImageFormSet  # Add this import
+from .forms import ListingForm, ListingImageFormSet
 
 def home(request):
     listings = Listing.objects.filter(approved=True)
@@ -15,6 +15,8 @@ def home(request):
     price_max = request.GET.get('price_max')
     year = request.GET.get('year')
     condition = request.GET.get('condition')
+    governorate = request.GET.get('governorate')
+    sort = request.GET.get('sort')
 
     # Apply filters
     if brand_id:
@@ -27,15 +29,31 @@ def home(request):
         listings = listings.filter(year=year)
     if condition:
         listings = listings.filter(condition=condition)
+    if governorate:
+        if governorate == 'Greater Cairo':
+            listings = listings.filter(governorate__in=['Cairo', 'Giza', 'Qalyubia'])
+        else:
+            listings = listings.filter(governorate=governorate)
 
-    # Get all brands for the filter dropdown
+    # Apply sorting
+    if sort == 'lowest_price':
+        listings = listings.order_by('price')
+    elif sort == 'highest_price':
+        listings = listings.order_by('-price')
+    else:
+        listings = listings.order_by('-created_at')  # Default: Newly listed (descending)
+
+    # Get all brands and governorates for the filter dropdowns
     brands = Brand.objects.filter(approved=True)
+    governorates = [choice[0] for choice in Listing.GOVERNORATE_CHOICES]
+    governorates.insert(0, 'Greater Cairo')  # Add "Greater Cairo" as the first option
 
     context = {
         'listings': listings,
         'ad_spaces': ad_spaces,
         'brands': brands,
-        'conditions': Listing._meta.get_field('condition').choices,  # Get condition choices
+        'conditions': Listing._meta.get_field('condition').choices,
+        'governorates': governorates,
     }
     return render(request, 'listings/home.html', context)
 
@@ -51,31 +69,29 @@ def create_listing(request):
         print("POST data:", request.POST)
         print("FILES data:", request.FILES)
         form = ListingForm(request.POST)
-        # Pass the listing instance to the formset after saving the listing
         if form.is_valid():
             print("Listing form is valid")
             listing = form.save(commit=False)
             listing.seller = request.user
             listing.approved = False
             listing.save()
-            # Now that the listing is saved, pass it to the formset
             image_formset = ListingImageFormSet(request.POST, request.FILES, instance=listing)
             if image_formset.is_valid():
                 print("Image formset is valid")
-                image_formset.save()  # Save the images directly using the formset
+                image_formset.save()
                 messages.success(request, "Your listing has been submitted successfully! One of our admins will review and approve it soon.")
                 return redirect('home')
             else:
                 print("Image formset errors:", image_formset.errors)
                 messages.error(request, "Please correct the image upload errors below.")
-                listing.delete()  # Roll back the listing if the formset is invalid
+                listing.delete()
         else:
             print("Listing form errors:", form.errors)
             messages.error(request, "Please correct the form errors below.")
             image_formset = ListingImageFormSet(request.POST, request.FILES)
     else:
         form = ListingForm()
-        image_formset = ListingImageFormSet()  # No instance yet for GET request
+        image_formset = ListingImageFormSet()
     return render(request, 'listings/create_listing.html', {'form': form, 'image_formset': image_formset})
 
 def get_models(request):
