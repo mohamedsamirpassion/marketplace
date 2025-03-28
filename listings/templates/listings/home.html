@@ -13,6 +13,46 @@
     <div class="row">
         <div class="col-md-9">
             <h1 class="mb-4">Car Listings</h1>
+            <!-- Filter Form -->
+            <form method="get" class="mb-4">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label for="brand" class="form-label">Brand</label>
+                        <select name="brand" id="brand" class="form-select">
+                            <option value="">All Brands</option>
+                            {% for brand in brands %}
+                                <option value="{{ brand.id }}" {% if request.GET.brand == brand.id|stringformat:"s" %}selected{% endif %}>{{ brand.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="price_min" class="form-label">Price Min (EGP)</label>
+                        <input type="number" name="price_min" id="price_min" class="form-control" value="{{ request.GET.price_min }}" placeholder="Min Price">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="price_max" class="form-label">Price Max (EGP)</label>
+                        <input type="number" name="price_max" id="price_max" class="form-control" value="{{ request.GET.price_max }}" placeholder="Max Price">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="year" class="form-label">Year</label>
+                        <input type="number" name="year" id="year" class="form-control" value="{{ request.GET.year }}" placeholder="Year">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="condition" class="form-label">Condition</label>
+                        <select name="condition" id="condition" class="form-select">
+                            <option value="">All Conditions</option>
+                            {% for value, label in conditions %}
+                                <option value="{{ value }}" {% if request.GET.condition == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary">Apply Filters</button>
+                        <a href="{% url 'home' %}" class="btn btn-secondary ms-2">Clear Filters</a>
+                    </div>
+                </div>
+            </form>
+
             <div class="row">
                 {% for listing in listings %}
                     <div class="col-md-4 mb-3">

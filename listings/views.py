@@ -1,8 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.contrib import messages
-from django.core.mail import send_mail
 from .models import Listing, ListingImage, Model, AdSpace, Brand
 
 def home(request):
@@ -92,4 +91,3 @@ def get_models(request):
         return JsonResponse({'models': [], 'error': f'Invalid brand_id: {str(e)}'}, status=400)
     except Exception as e:
         return JsonResponse({'models': [], 'error': f'Server error: {str(e)}'}, status=500)
-
