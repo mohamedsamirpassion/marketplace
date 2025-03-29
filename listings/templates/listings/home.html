@@ -10,137 +10,336 @@
         {% endif %}
     {% endfor %}
 
-    <div class="row">
-        <div class="col-md-9">
-            <h1 class="mb-4">Car Listings</h1>
-            <!-- Filter Form -->
-            <form method="get" class="mb-4">
-                <div class="row">
-                    <div class="col-md-3 mb-3">
-                        <label for="brand" class="form-label">Brand</label>
-                        <select name="brand" id="brand" class="form-select">
-                            <option value="">All Brands</option>
-                            {% for brand in brands %}
-                                <option value="{{ brand.id }}" {% if request.GET.brand == brand.id|stringformat:"s" %}selected{% endif %}>{{ brand.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <label for="governorate" class="form-label">Location</label>
-                        <select name="governorate" id="governorate" class="form-select">
-                            <option value="">All Locations</option>
-                            {% for gov in governorates %}
-                                <option value="{{ gov }}" {% if request.GET.governorate == gov %}selected{% endif %}>{{ gov }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <label for="price_min" class="form-label">Price Min (EGP)</label>
-                        <input type="number" name="price_min" id="price_min" class="form-control" value="{{ request.GET.price_min }}" placeholder="Min Price">
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <label for="price_max" class="form-label">Price Max (EGP)</label>
-                        <input type="number" name="price_max" id="price_max" class="form-control" value="{{ request.GET.price_max }}" placeholder="Max Price">
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <label for="year" class="form-label">Year</label>
-                        <input type="number" name="year" id="year" class="form-control" value="{{ request.GET.year }}" placeholder="Year">
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <label for="condition" class="form-label">Condition</label>
-                        <select name="condition" id="condition" class="form-select">
-                            <option value="">All Conditions</option>
-                            {% for value, label in conditions %}
-                                <option value="{{ value }}" {% if request.GET.condition == value %}selected{% endif %}>{{ label }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <label for="transmission" class="form-label">Transmission</label>
-                        <select name="transmission" id="transmission" class="form-select">
-                            <option value="">All Transmissions</option>
-                            {% for value, label in transmissions %}
-                                <option value="{{ value }}" {% if request.GET.transmission == value %}selected{% endif %}>{{ label }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-3 mb-3 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary">Apply Filters</button>
-                        <a href="{% url 'home' %}" class="btn btn-secondary ms-2">Clear Filters</a>
-                    </div>
-                </div>
-            </form>
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-md-9">
+                <h1 class="mb-4 text-dark fw-bold">Car Listings</h1>
 
-            <!-- Sorting Dropdown -->
-            <div class="mb-3 d-flex justify-content-end">
-                <form method="get" class="d-inline">
-                    <!-- Preserve existing filter parameters -->
-                    {% for key, value in request.GET.items %}
-                        {% if key != 'sort' %}
-                            <input type="hidden" name="{{ key }}" value="{{ value }}">
-                        {% endif %}
-                    {% endfor %}
-                    <label for="sort" class="form-label me-2">Sort by:</label>
-                    <select name="sort" id="sort" class="form-select d-inline w-auto" onchange="this.form.submit()">
-                        <option value="newly_listed" {% if request.GET.sort == "newly_listed" or not request.GET.sort %}selected{% endif %}>Newly Listed</option>
-                        <option value="lowest_price" {% if request.GET.sort == "lowest_price" %}selected{% endif %}>Lowest Price</option>
-                        <option value="highest_price" {% if request.GET.sort == "highest_price" %}selected{% endif %}>Highest Price</option>
-                    </select>
-                </form>
-            </div>
-
-            <div class="row">
-                {% for listing in listings %}
-                    <div class="col-md-4 mb-3">
-                        <a href="{% url 'listing_detail' listing.pk %}" class="text-decoration-none text-dark">
-                            <div class="card h-100">
-                                {% if listing.images.all %}
-                                    <div id="carousel-{{ listing.pk }}" class="carousel slide" data-bs-ride="carousel">
-                                        <div class="carousel-inner">
-                                            {% for image in listing.images.all %}
-                                                <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                                                    <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ listing.brand.name }} {{ listing.model.name }}" style="height: 200px; object-fit: cover;">
-                                                </div>
+                <!-- Filter Form -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title mb-0 text-dark">Filter Listings</h5>
+                            <button class="btn btn-outline-primary btn-sm d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
+                                <i class="bi bi-funnel"></i> Toggle Filters
+                            </button>
+                        </div>
+                        <form method="get">
+                            <div class="collapse show" id="filterCollapse">
+                                <div class="row g-2">
+                                    <div class="col-md-2 col-6">
+                                        <select name="brand" id="brand" class="form-select form-select-sm">
+                                            <option value="">All Brands</option>
+                                            {% for brand in brands %}
+                                                <option value="{{ brand.id }}" {% if request.GET.brand == brand.id|stringformat:"s" %}selected{% endif %}>{{ brand.name }}</option>
                                             {% endfor %}
-                                        </div>
-                                        <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ listing.pk }}" data-bs-slide="prev">
-                                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                            <span class="visually-hidden">Previous</span>
-                                        </button>
-                                        <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ listing.pk }}" data-bs-slide="next">
-                                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                            <span class="visually-hidden">Next</span>
-                                        </button>
+                                        </select>
                                     </div>
-                                {% endif %}
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ listing.brand.name }} {{ listing.model.name }} ({{ listing.year }})</h5>
-                                    <p class="card-text">
-                                        <i class="bi bi-currency-dollar"></i> {{ listing.price }} EGP<br>
-                                        <i class="bi bi-speedometer2"></i> {{ listing.mileage }} km<br>
-                                        <i class="bi bi-gear"></i> {{ listing.transmission }}<br>
-                                        <i class="bi bi-geo-alt"></i> {{ listing.full_location }}
-                                    </p>
+                                    <div class="col-md-2 col-6">
+                                        <select name="governorate" id="governorate" class="form-select form-select-sm">
+                                            <option value="">All Locations</option>
+                                            {% for gov in governorates %}
+                                                <option value="{{ gov }}" {% if request.GET.governorate == gov %}selected{% endif %}>{{ gov }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2 col-6">
+                                        <input type="number" name="price_min" id="price_min" class="form-control form-control-sm" value="{{ request.GET.price_min }}" placeholder="Min Price">
+                                    </div>
+                                    <div class="col-md-2 col-6">
+                                        <input type="number" name="price_max" id="price_max" class="form-control form-control-sm" value="{{ request.GET.price_max }}" placeholder="Max Price">
+                                    </div>
+                                    <div class="col-md-1 col-4">
+                                        <input type="number" name="year" id="year" class="form-control form-control-sm" value="{{ request.GET.year }}" placeholder="Year">
+                                    </div>
+                                    <div class="col-md-1 col-4">
+                                        <select name="condition" id="condition" class="form-select form-select-sm">
+                                            <option value="">Condition</option>
+                                            {% for value, label in conditions %}
+                                                <option value="{{ value }}" {% if request.GET.condition == value %}selected{% endif %}>{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-1 col-4">
+                                        <select name="transmission" id="transmission" class="form-select form-select-sm">
+                                            <option value="">Transmission</option>
+                                            {% for value, label in transmissions %}
+                                                <option value="{{ value }}" {% if request.GET.transmission == value %}selected{% endif %}>{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-1 col-12 d-flex align-items-center">
+                                        <button type="submit" class="btn btn-primary btn-sm w-100">Filter</button>
+                                        <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-sm ms-1">Clear</a>
+                                    </div>
                                 </div>
                             </div>
-                        </a>
+                        </form>
                     </div>
-                {% empty %}
-                    <div class="col-12">
-                        <p>No listings available.</p>
-                    </div>
+                </div>
+
+                <!-- Sorting Dropdown -->
+                <div class="d-flex justify-content-end mb-4">
+                    <form method="get" class="d-inline">
+                        <!-- Preserve existing filter parameters -->
+                        {% for key, value in request.GET.items %}
+                            {% if key != 'sort' %}
+                                <input type="hidden" name="{{ key }}" value="{{ value }}">
+                            {% endif %}
+                        {% endfor %}
+                        <label for="sort" class="form-label me-2 text-muted">Sort by:</label>
+                        <select name="sort" id="sort" class="form-select form-select-sm d-inline w-auto" onchange="this.form.submit()">
+                            <option value="newly_listed" {% if request.GET.sort == "newly_listed" or not request.GET.sort %}selected{% endif %}>Newly Listed</option>
+                            <option value="lowest_price" {% if request.GET.sort == "lowest_price" %}selected{% endif %}>Lowest Price</option>
+                            <option value="highest_price" {% if request.GET.sort == "highest_price" %}selected{% endif %}>Highest Price</option>
+                        </select>
+                    </form>
+                </div>
+
+                <!-- Listings -->
+                <div class="row">
+                    {% for listing in listings %}
+                        <div class="col-md-4 mb-4">
+                            <a href="{% url 'listing_detail' listing.pk %}" class="text-decoration-none">
+                                <div class="card listing-card h-100 shadow-sm">
+                                    {% if listing.images.all %}
+                                        <div id="carousel-{{ listing.pk }}" class="carousel slide" data-bs-ride="carousel">
+                                            <div class="carousel-inner">
+                                                {% for image in listing.images.all %}
+                                                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                                        <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ listing.brand.name }} {{ listing.model.name }}" style="height: 200px; object-fit: cover; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem;">
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                            <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ listing.pk }}" data-bs-slide="prev">
+                                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                <span class="visually-hidden">Previous</span>
+                                            </button>
+                                            <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ listing.pk }}" data-bs-slide="next">
+                                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                <span class="visually-hidden">Next</span>
+                                            </button>
+                                        </div>
+                                    {% endif %}
+                                    <div class="card-body">
+                                        <h5 class="card-title text-dark mb-2">{{ listing.brand.name }} {{ listing.model.name }} ({{ listing.year }})</h5>
+                                        <p class="card-text text-muted small">
+                                            <i class="bi bi-currency-dollar me-1"></i> {{ listing.price }} EGP<br>
+                                            <i class="bi bi-speedometer2 me-1"></i> {{ listing.mileage }} km<br>
+                                            <i class="bi bi-gear me-1"></i> {{ listing.transmission }}<br>
+                                            <i class="bi bi-geo-alt me-1"></i> {{ listing.full_location }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    {% empty %}
+                        <div class="col-12">
+                            <p class="text-muted">No listings available.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination Controls -->
+                {% if page_obj.has_other_pages %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center mt-4">
+                            <!-- Previous Page Link -->
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo; Previous</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo; Previous</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            <!-- Page Numbers -->
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item"><a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            <!-- Next Page Link -->
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" aria-label="Next">
+                                        <span aria-hidden="true">Next &raquo;</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" aria-label="Next">
+                                        <span aria-hidden="true">Next &raquo;</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            </div>
+            <!-- Sidebar Ad -->
+            <div class="col-md-3">
+                {% for ad in ad_spaces %}
+                    {% if ad.location_on_page == 'sidebar' and ad.is_active %}
+                        <div class="sticky-top sidebar-ad" style="top: 20px;">
+                            {{ ad.ad_network_code|safe }}
+                        </div>
+                    {% endif %}
                 {% endfor %}
             </div>
         </div>
-        <!-- Sidebar Ad -->
-        <div class="col-md-3">
-            {% for ad in ad_spaces %}
-                {% if ad.location_on_page == 'sidebar' and ad.is_active %}
-                    <div class="sticky-top" style="top: 20px;">
-                        {{ ad.ad_network_code|safe }}
-                    </div>
-                {% endif %}
-            {% endfor %}
-        </div>
     </div>
+
+    <style>
+        /* General Page Styling */
+        body {
+            background-color: #f5f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container-fluid {
+            max-width: 1400px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        /* Filter Card */
+        .card {
+            border: none;
+            border-radius: 0.75rem;
+            background-color: #ffffff;
+        }
+
+        .card-body {
+            padding: 1.25rem;
+        }
+
+        .form-select-sm, .form-control-sm {
+            font-size: 0.875rem;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+            border: 1px solid #ced4da;
+        }
+
+        .form-select-sm:focus, .form-control-sm:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.1);
+        }
+
+        .btn-sm {
+            font-size: 0.875rem;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+        .btn-outline-secondary {
+            border-color: #ced4da;
+            color: #6c757d;
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: #f8f9fa;
+            border-color: #ced4da;
+        }
+
+        /* Listing Cards */
+        .listing-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .listing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .card-text {
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .card-text i {
+            color: #6c757d;
+            width: 20px;
+        }
+
+        /* Pagination */
+        .pagination .page-link {
+            border-radius: 0.375rem;
+            color: #007bff;
+            border: 1px solid #dee2e6;
+            margin: 0 2px;
+            padding: 0.5rem 0.75rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: #ffffff;
+        }
+
+        .pagination .page-link:hover {
+            background-color: #e9ecef;
+        }
+
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #f8f9fa;
+        }
+
+        /* Sidebar Ad */
+        .sidebar-ad {
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 767.98px) {
+            .form-select-sm, .form-control-sm {
+                font-size: 0.85rem;
+            }
+
+            .btn-sm {
+                font-size: 0.85rem;
+            }
+
+            .card-title {
+                font-size: 1rem;
+            }
+
+            .card-text {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
 {% endblock %}

@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib import messages
+from django.core.paginator import Paginator  # Import Paginator
 from .models import Listing, ListingImage, Model, AdSpace, Brand
 from .forms import ListingForm, ListingImageFormSet
 
@@ -16,7 +17,7 @@ def home(request):
     year = request.GET.get('year')
     condition = request.GET.get('condition')
     governorate = request.GET.get('governorate')
-    transmission = request.GET.get('transmission')  # New filter
+    transmission = request.GET.get('transmission')
     sort = request.GET.get('sort')
 
     # Apply filters
@@ -46,18 +47,24 @@ def home(request):
     else:
         listings = listings.order_by('-date_posted')  # Default: Newly listed (descending)
 
+    # Pagination
+    paginator = Paginator(listings, 9)  # Show 9 listings per page
+    page_number = request.GET.get('page')  # Get the current page number from the request
+    page_obj = paginator.get_page(page_number)  # Get the listings for the current page
+
     # Get all brands and governorates for the filter dropdowns
     brands = Brand.objects.filter(approved=True)
     governorates = [choice[0] for choice in Listing._meta.get_field('governorate').choices]
     governorates.insert(0, 'Greater Cairo')  # Add "Greater Cairo" as the first option
 
     context = {
-        'listings': listings,
+        'listings': page_obj,  # Pass the paginated listings
+        'page_obj': page_obj,  # Pass the page object for pagination controls
         'ad_spaces': ad_spaces,
         'brands': brands,
         'conditions': Listing._meta.get_field('condition').choices,
         'governorates': governorates,
-        'transmissions': Listing._meta.get_field('transmission').choices,  # New context variable
+        'transmissions': Listing._meta.get_field('transmission').choices,
     }
     return render(request, 'listings/home.html', context)
 
