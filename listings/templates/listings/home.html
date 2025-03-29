@@ -55,6 +55,15 @@
                             {% endfor %}
                         </select>
                     </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="transmission" class="form-label">Transmission</label>
+                        <select name="transmission" id="transmission" class="form-select">
+                            <option value="">All Transmissions</option>
+                            {% for value, label in transmissions %}
+                                <option value="{{ value }}" {% if request.GET.transmission == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     <div class="col-md-3 mb-3 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary">Apply Filters</button>
                         <a href="{% url 'home' %}" class="btn btn-secondary ms-2">Clear Filters</a>
@@ -109,6 +118,7 @@
                                     <p class="card-text">
                                         <i class="bi bi-currency-dollar"></i> {{ listing.price }} EGP<br>
                                         <i class="bi bi-speedometer2"></i> {{ listing.mileage }} km<br>
+                                        <i class="bi bi-gear"></i> {{ listing.transmission }}<br>
                                         <i class="bi bi-geo-alt"></i> {{ listing.full_location }}
                                     </p>
                                 </div>

@@ -16,6 +16,7 @@ def home(request):
     year = request.GET.get('year')
     condition = request.GET.get('condition')
     governorate = request.GET.get('governorate')
+    transmission = request.GET.get('transmission')  # New filter
     sort = request.GET.get('sort')
 
     # Apply filters
@@ -34,6 +35,8 @@ def home(request):
             listings = listings.filter(governorate__in=['Cairo', 'Giza', 'Qalyubia'])
         else:
             listings = listings.filter(governorate=governorate)
+    if transmission:
+        listings = listings.filter(transmission=transmission)
 
     # Apply sorting
     if sort == 'lowest_price':
@@ -54,6 +57,7 @@ def home(request):
         'brands': brands,
         'conditions': Listing._meta.get_field('condition').choices,
         'governorates': governorates,
+        'transmissions': Listing._meta.get_field('transmission').choices,  # New context variable
     }
     return render(request, 'listings/home.html', context)
 
@@ -66,36 +70,21 @@ def listing_detail(request, pk):
 @login_required
 def create_listing(request):
     if request.method == 'POST':
-        print("POST data:", request.POST)
-        print("FILES data:", request.FILES)
         form = ListingForm(request.POST)
         if form.is_valid():
-            print("Listing form is valid")
             listing = form.save(commit=False)
             listing.seller = request.user
             listing.approved = False
             listing.save()
-            # Set the prefix to match the management form fields
             image_formset = ListingImageFormSet(request.POST, request.FILES, instance=listing, prefix='images')
             if image_formset.is_valid():
-                print("Image formset is valid")
-                # Debug: Inspect the formset's cleaned data
-                for i, form in enumerate(image_formset):
-                    print(f"Form {i} cleaned data:", form.cleaned_data)
                 image_formset.save()
-                # Debug: Check the number of images saved
-                saved_images = ListingImage.objects.filter(listing=listing)
-                print("Number of images saved:", saved_images.count())
-                for img in saved_images:
-                    print("Saved image path:", img.image.url)
                 messages.success(request, "Your listing has been submitted successfully! One of our admins will review and approve it soon.")
                 return redirect('home')
             else:
-                print("Image formset errors:", image_formset.errors)
                 messages.error(request, "Please correct the image upload errors below.")
                 listing.delete()
         else:
-            print("Listing form errors:", form.errors)
             messages.error(request, "Please correct the form errors below.")
             image_formset = ListingImageFormSet(request.POST, request.FILES, prefix='images')
     else:

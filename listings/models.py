@@ -82,6 +82,11 @@ class Listing(models.Model):
         ('Used', 'Used'),
         ('Damaged', 'Damaged'),
     ])
+    TRANSMISSION_CHOICES = [
+        ('Automatic', 'Automatic'),
+        ('Manual', 'Manual'),
+    ]
+    transmission = models.CharField(max_length=20, choices=TRANSMISSION_CHOICES)  # New field
     description = models.TextField()
     date_posted = models.DateTimeField(auto_now_add=True)
     approved = models.BooleanField(default=False)
