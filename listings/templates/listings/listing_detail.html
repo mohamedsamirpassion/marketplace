@@ -58,7 +58,7 @@
                     <div class="card-body">
                         <h5 class="card-title text-dark">Seller Information</h5>
                         <p class="card-text">
-                            Seller: {{ listing.seller.name }} ({{ listing.seller.email }})<br>
+                            Seller: {{ listing.seller.name }}<br>
                             {% if listing.seller.phone_number %}
                                 <span id="phone-number" data-phone="{{ listing.seller.phone_number }}" class="text-muted">
                                     {{ listing.seller.phone_number|slice:":5" }}****{{ listing.seller.phone_number|slice:"-2:" }}
