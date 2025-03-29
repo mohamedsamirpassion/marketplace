@@ -8,7 +8,7 @@ class ListingForm(forms.ModelForm):
 
     class Meta:
         model = Listing
-        fields = ['brand', 'model', 'year', 'price', 'mileage', 'governorate', 'city', 'condition', 'transmission', 'description']
+        fields = ['brand', 'model', 'year', 'price', 'mileage', 'governorate', 'city', 'condition', 'transmission', 'fuel_type', 'description']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
         }

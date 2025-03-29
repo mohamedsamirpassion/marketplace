@@ -1,44 +1,159 @@
 {% extends 'base.html' %}
-{% block title %}{{ listing.brand.name }} {{ listing.model.name }}{% endblock %}
+{% block title %}{{ listing.brand.name }} {{ listing.model.name }} ({{ listing.year }}){% endblock %}
 {% block content %}
-    <div class="row">
-        <div class="col-md-9">
-            <h1 class="mb-4">{{ listing.brand.name }} {{ listing.model.name }} ({{ listing.year }})</h1>
-            {% if listing.images.all %}
-                <div id="carousel-{{ listing.pk }}" class="carousel slide mb-4" data-bs-ride="carousel">
-                    <div class="carousel-inner">
-                        {% for image in listing.images.all %}
-                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                                <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ listing.brand.name }} {{ listing.model.name }}" style="height: 400px; object-fit: cover;">
-                            </div>
-                        {% endfor %}
+    <div class="container py-5">
+        <div class="row">
+            <!-- Listing Images -->
+            <div class="col-md-6">
+                {% if listing.images.all %}
+                    <div id="listingCarousel" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner">
+                            {% for image in listing.images.all %}
+                                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                    <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ listing.brand.name }} {{ listing.model.name }}" style="height: 400px; object-fit: cover; border-radius: 0.75rem;">
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#listingCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#listingCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
                     </div>
-                    <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ listing.pk }}" data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Previous</span>
-                    </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ listing.pk }}" data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Next</span>
-                    </button>
-                </div>
-            {% endif %}
-            <p><strong>Price:</strong> {{ listing.price }} EGP</p>
-            <p><strong>Mileage:</strong> {{ listing.mileage }} km</p>
-            <p><strong>Condition:</strong> {{ listing.condition }}</p>
-            <p><strong>Location:</strong> {{ listing.full_location }}</p>
-            <p><strong>Description:</strong> {{ listing.description }}</p>
-            <p><strong>Seller:</strong> {{ listing.seller.email }} (Contact for more details)</p>
-        </div>
-        <!-- Sidebar Ad -->
-        <div class="col-md-3">
-            {% for ad in ad_spaces %}
-                {% if ad.location_on_page == 'sidebar' and ad.is_active %}
-                    <div class="sticky-top" style="top: 20px;">
-                        {{ ad.ad_network_code|safe }}
-                    </div>
+                {% else %}
+                    <p class="text-muted">No images available.</p>
                 {% endif %}
-            {% endfor %}
+            </div>
+
+            <!-- Listing Details -->
+            <div class="col-md-6">
+                <h1 class="mb-3 text-dark fw-bold">{{ listing.brand.name }} {{ listing.model.name }} ({{ listing.year }})</h1>
+                <p class="text-muted mb-4">Posted on: {{ listing.date_posted|date:"F d, Y" }}</p>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title text-dark">Details</h5>
+                        <p class="card-text">
+                            <i class="bi bi-currency-dollar me-1"></i> Price: {{ listing.price }} EGP<br>
+                            <i class="bi bi-speedometer2 me-1"></i> Mileage: {{ listing.mileage }} km<br>
+                            <i class="bi bi-gear me-1"></i> Transmission: {{ listing.transmission }}<br>
+                            <i class="bi bi-fuel-pump me-1"></i> Fuel Type: {{ listing.fuel_type }}<br>
+                            <i class="bi bi-geo-alt me-1"></i> Location: {{ listing.full_location }}<br>
+                            <i class="bi bi-car-front me-1"></i> Condition: {{ listing.condition }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title text-dark">Description</h5>
+                        <p class="card-text">{{ listing.description|default:"No description provided." }}</p>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title text-dark">Seller Information</h5>
+                        <p class="card-text">
+                            Seller: {{ listing.seller.name }} ({{ listing.seller.email }})<br>
+                            {% if listing.seller.phone_number %}
+                                <span id="phone-number" data-phone="{{ listing.seller.phone_number }}" class="text-muted">
+                                    {{ listing.seller.phone_number|slice:":5" }}****{{ listing.seller.phone_number|slice:"-2:" }}
+                                </span>
+                                <button id="reveal-button" class="btn btn-primary btn-sm ms-2">Reveal Number</button>
+                            {% else %}
+                                <span class="text-muted">Phone number not provided.</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Ad -->
+        <div class="row mt-4">
+            <div class="col-12">
+                {% for ad in ad_spaces %}
+                    {% if ad.location_on_page == 'sidebar' and ad.is_active %}
+                        <div class="text-center">
+                            {{ ad.ad_network_code|safe }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
         </div>
     </div>
+
+    <style>
+        body {
+            background-color: #f5f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .card {
+            border: none;
+            border-radius: 0.75rem;
+            background-color: #ffffff;
+        }
+
+        .card-body {
+            padding: 1.25rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .card-text {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #6c757d;
+        }
+
+        .card-text i {
+            color: #6c757d;
+            width: 20px;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const revealButton = document.getElementById('reveal-button');
+            const phoneNumberSpan = document.getElementById('phone-number');
+
+            if (revealButton && phoneNumberSpan) {
+                revealButton.addEventListener('click', function() {
+                    const fullPhoneNumber = phoneNumberSpan.getAttribute('data-phone');
+                    phoneNumberSpan.textContent = fullPhoneNumber;
+                    revealButton.style.display = 'none';
+                });
+            }
+        });
+    </script>
 {% endblock %}

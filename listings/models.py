@@ -86,7 +86,12 @@ class Listing(models.Model):
         ('Automatic', 'Automatic'),
         ('Manual', 'Manual'),
     ]
-    transmission = models.CharField(max_length=20, choices=TRANSMISSION_CHOICES)  # New field
+    transmission = models.CharField(max_length=20, choices=TRANSMISSION_CHOICES)
+    FUEL_TYPE_CHOICES = [
+        ('Gas', 'Gas'),
+        ('Electric', 'Electric'),
+    ]
+    fuel_type = models.CharField(max_length=20, choices=FUEL_TYPE_CHOICES, default='Gas')  # New field
     description = models.TextField()
     date_posted = models.DateTimeField(auto_now_add=True)
     approved = models.BooleanField(default=False)

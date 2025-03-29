@@ -1,8 +1,8 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404  # Add get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib import messages
-from django.core.paginator import Paginator  # Import Paginator
+from django.core.paginator import Paginator
 from .models import Listing, ListingImage, Model, AdSpace, Brand
 from .forms import ListingForm, ListingImageFormSet
 
@@ -18,6 +18,7 @@ def home(request):
     condition = request.GET.get('condition')
     governorate = request.GET.get('governorate')
     transmission = request.GET.get('transmission')
+    fuel_type = request.GET.get('fuel_type')
     sort = request.GET.get('sort')
 
     # Apply filters
@@ -38,6 +39,8 @@ def home(request):
             listings = listings.filter(governorate=governorate)
     if transmission:
         listings = listings.filter(transmission=transmission)
+    if fuel_type:
+        listings = listings.filter(fuel_type=fuel_type)
 
     # Apply sorting
     if sort == 'lowest_price':
@@ -58,19 +61,21 @@ def home(request):
     governorates.insert(0, 'Greater Cairo')  # Add "Greater Cairo" as the first option
 
     context = {
-        'listings': page_obj,  # Pass the paginated listings
-        'page_obj': page_obj,  # Pass the page object for pagination controls
+        'listings': page_obj,
+        'page_obj': page_obj,
         'ad_spaces': ad_spaces,
         'brands': brands,
         'conditions': Listing._meta.get_field('condition').choices,
         'governorates': governorates,
         'transmissions': Listing._meta.get_field('transmission').choices,
+        'fuel_types': Listing._meta.get_field('fuel_type').choices,
     }
     return render(request, 'listings/home.html', context)
 
 def listing_detail(request, pk):
-    listing = Listing.objects.get(pk=pk)
+    listing = get_object_or_404(Listing, pk=pk, approved=True)  # Use get_object_or_404 and ensure approved=True
     ad_spaces = AdSpace.objects.filter(is_active=True)
+    print("Listing:", listing)  # Debug output
     print("Ad Spaces in Listing Detail:", list(ad_spaces))  # Debug output
     return render(request, 'listings/listing_detail.html', {'listing': listing, 'ad_spaces': ad_spaces})
 
