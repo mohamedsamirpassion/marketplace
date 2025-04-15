@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Sign In Via" %} {{ provider.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">{% trans "Sign In Via" %} {{ provider.name }}</h4>
+        </div>
+        <div class="card-body">
+          <p class="text-center">
+            {% blocktrans with provider_name=provider.name site_name=site.name %}You are about to sign in using your {{ provider_name }} account to {{ site_name }}.{% endblocktrans %}
+          </p>
+
+          <form method="post">
+            {% csrf_token %}
+            <div class="d-grid mt-4">
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-box-arrow-in-right me-2"></i>{% trans "Continue" %}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

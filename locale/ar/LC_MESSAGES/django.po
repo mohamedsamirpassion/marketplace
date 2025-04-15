@@ -1,0 +1,293 @@
+# Arabic translation for Cairo Bazaar
+# Copyright (C) 2025 Cairo Bazaar Team
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-04-13 10:00+0000\n"
+"PO-Revision-Date: 2025-04-13 10:00+0000\n"
+"Last-Translator: Cairo Bazaar Team\n"
+"Language-Team: Arabic\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+
+#: templates/base.html
+msgid "Cairo Bazaar"
+msgstr "بازار القاهرة"
+
+#: templates/base.html
+msgid "Marketplace"
+msgstr "سوق السيارات"
+
+#: templates/base.html
+msgid "Post a Listing"
+msgstr "إضافة إعلان"
+
+#: templates/base.html
+msgid "My Favorites"
+msgstr "المفضلة"
+
+#: templates/base.html
+msgid "My Profile"
+msgstr "الملف الشخصي"
+
+#: templates/base.html
+msgid "Login"
+msgstr "تسجيل الدخول"
+
+#: templates/base.html
+msgid "Logout"
+msgstr "تسجيل الخروج"
+
+#: templates/base.html
+msgid "Sign Up"
+msgstr "إنشاء حساب"
+
+#: listings/templates/listings/home.html
+msgid "Car Listings"
+msgstr "إعلانات السيارات"
+
+#: listings/templates/listings/home.html
+msgid "Filter Listings"
+msgstr "تصفية الإعلانات"
+
+#: listings/templates/listings/home.html
+msgid "Search Brand..."
+msgstr "البحث عن ماركة..."
+
+#: listings/templates/listings/home.html
+msgid "Search Model..."
+msgstr "البحث عن موديل..."
+
+#: listings/templates/listings/home.html
+msgid "All Brands"
+msgstr "جميع الماركات"
+
+#: listings/templates/listings/home.html
+msgid "All Models"
+msgstr "جميع الموديلات"
+
+#: listings/templates/listings/home.html
+msgid "All Locations"
+msgstr "جميع المواقع"
+
+#: listings/templates/listings/home.html
+msgid "Year"
+msgstr "سنة الصنع"
+
+#: listings/templates/listings/home.html
+msgid "Min Price"
+msgstr "أقل سعر"
+
+#: listings/templates/listings/home.html
+msgid "Max Price"
+msgstr "أعلى سعر"
+
+#: listings/templates/listings/home.html
+msgid "Min Mileage (km)"
+msgstr "أقل عدد كيلومترات"
+
+#: listings/templates/listings/home.html
+msgid "Max Mileage (km)"
+msgstr "أقصى عدد كيلومترات"
+
+#: listings/templates/listings/home.html
+msgid "Condition"
+msgstr "الحالة"
+
+#: listings/templates/listings/home.html
+msgid "Transmission"
+msgstr "ناقل الحركة"
+
+#: listings/templates/listings/home.html
+msgid "Fuel Type"
+msgstr "نوع الوقود"
+
+#: listings/templates/listings/home.html
+msgid "Filter"
+msgstr "تصفية"
+
+#: listings/templates/listings/home.html
+msgid "Clear"
+msgstr "مسح"
+
+#: listings/templates/listings/home.html
+msgid "Sort by:"
+msgstr "ترتيب حسب:"
+
+#: listings/templates/listings/home.html
+msgid "Newly Listed"
+msgstr "الأحدث"
+
+#: listings/templates/listings/home.html
+msgid "Lowest Price"
+msgstr "الأقل سعراً"
+
+#: listings/templates/listings/home.html
+msgid "Highest Price"
+msgstr "الأعلى سعراً"
+
+#: listings/templates/listings/home.html
+msgid "Lowest Mileage"
+msgstr "الأقل كيلومترات"
+
+#: listings/templates/listings/home.html
+msgid "No listings available."
+msgstr "لا توجد إعلانات متاحة."
+
+#: listings/models.py
+msgid "New"
+msgstr "جديد"
+
+#: listings/models.py
+msgid "Used"
+msgstr "مستعمل"
+
+#: listings/models.py
+msgid "Manual"
+msgstr "يدوي"
+
+#: listings/models.py
+msgid "Automatic"
+msgstr "أوتوماتيك"
+
+#: listings/models.py
+msgid "Petrol"
+msgstr "بنزين"
+
+#: listings/models.py
+msgid "Diesel"
+msgstr "ديزل"
+
+#: listings/models.py
+msgid "Electric"
+msgstr "كهربائي"
+
+#: listings/models.py
+msgid "Hybrid"
+msgstr "هجين"
+
+#: listings/models.py
+msgid "Natural Gas"
+msgstr "غاز طبيعي"
+
+# Egyptian Governorates
+msgid "Cairo"
+msgstr "القاهرة"
+
+msgid "Giza"
+msgstr "الجيزة"
+
+msgid "Alexandria"
+msgstr "الإسكندرية"
+
+msgid "Greater Cairo"
+msgstr "القاهرة الكبرى"
+
+msgid "Aswan"
+msgstr "أسوان"
+
+msgid "Asyut"
+msgstr "أسيوط"
+
+msgid "Beheira"
+msgstr "البحيرة"
+
+msgid "Beni Suef"
+msgstr "بني سويف"
+
+msgid "Dakahlia"
+msgstr "الدقهلية"
+
+msgid "Damietta"
+msgstr "دمياط"
+
+msgid "Faiyum"
+msgstr "الفيوم"
+
+msgid "Gharbia"
+msgstr "الغربية"
+
+msgid "Ismailia"
+msgstr "الإسماعيلية"
+
+msgid "Kafr El Sheikh"
+msgstr "كفر الشيخ"
+
+msgid "Luxor"
+msgstr "الأقصر"
+
+msgid "Matruh"
+msgstr "مطروح"
+
+msgid "Minya"
+msgstr "المنيا"
+
+msgid "Monufia"
+msgstr "المنوفية"
+
+msgid "New Valley"
+msgstr "الوادي الجديد"
+
+msgid "North Sinai"
+msgstr "شمال سيناء"
+
+msgid "Port Said"
+msgstr "بورسعيد"
+
+msgid "Qalyubia"
+msgstr "القليوبية"
+
+msgid "Qena"
+msgstr "قنا"
+
+msgid "Red Sea"
+msgstr "البحر الأحمر"
+
+msgid "Sharqia"
+msgstr "الشرقية"
+
+msgid "Sohag"
+msgstr "سوهاج"
+
+msgid "South Sinai"
+msgstr "جنوب سيناء"
+
+msgid "Suez"
+msgstr "السويس"
+
+# Listing Report Reasons
+msgid "Spam or Misleading"
+msgstr "محتوى مضلل أو غير مرغوب فيه"
+
+msgid "Fraudulent Listing"
+msgstr "إعلان احتيالي"
+
+msgid "Offensive Content"
+msgstr "محتوى مسيء"
+
+msgid "Incorrect Information"
+msgstr "معلومات غير صحيحة"
+
+msgid "Fake Images"
+msgstr "صور مزيفة"
+
+msgid "Other"
+msgstr "أخرى"
+
+# Report Status
+msgid "Pending Review"
+msgstr "قيد المراجعة"
+
+msgid "Resolved"
+msgstr "تم الحل"
+
+msgid "Dismissed"
+msgstr "تم الرفض"
+
+# Condition
+msgid "Damaged"
+msgstr "تالف" 

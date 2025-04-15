@@ -1,0 +1,288 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrastyle %}
+<style>
+    .report-dashboard {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    
+    @media (max-width: 1200px) {
+        .report-dashboard {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .dashboard-card {
+        background: white;
+        border-radius: 5px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+    
+    .dashboard-card-header {
+        background: #417690;
+        color: white;
+        padding: 10px 15px;
+        font-weight: bold;
+    }
+    
+    .dashboard-card-body {
+        padding: 15px;
+    }
+    
+    .stat-cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 5px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        padding: 15px;
+        text-align: center;
+    }
+    
+    .stat-card.pending {
+        border-top: 4px solid #ffc107;
+    }
+    
+    .stat-card.resolved {
+        border-top: 4px solid #28a745;
+    }
+    
+    .stat-card.dismissed {
+        border-top: 4px solid #6c757d;
+    }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+    
+    .report-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .report-table th, .report-table td {
+        padding: 8px 12px;
+        text-align: left;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .report-table th {
+        background-color: #f5f5f5;
+    }
+    
+    .report-table tr:hover {
+        background-color: #f9f9f9;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-resolved {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .status-dismissed {
+        background-color: #e2e3e5;
+        color: #383d41;
+    }
+    
+    .flag-icon {
+        color: #dc3545;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; {% trans 'Report Dashboard' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <h1>Report Dashboard</h1>
+    
+    <!-- Status Summary Cards -->
+    <div class="stat-cards">
+        <div class="stat-card pending">
+            <div class="stat-title">Pending Reports</div>
+            <div class="stat-value">{{ pending_count }}</div>
+            <div class="stat-action">
+                <a href="{% url 'admin:listings_listingreport_changelist' %}?status__exact=pending" class="button">View All</a>
+            </div>
+        </div>
+        
+        <div class="stat-card resolved">
+            <div class="stat-title">Resolved Reports</div>
+            <div class="stat-value">{{ resolved_count }}</div>
+            <div class="stat-action">
+                <a href="{% url 'admin:listings_listingreport_changelist' %}?status__exact=resolved" class="button">View All</a>
+            </div>
+        </div>
+        
+        <div class="stat-card dismissed">
+            <div class="stat-title">Dismissed Reports</div>
+            <div class="stat-value">{{ dismissed_count }}</div>
+            <div class="stat-action">
+                <a href="{% url 'admin:listings_listingreport_changelist' %}?status__exact=dismissed" class="button">View All</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="report-dashboard">
+        <!-- Recent Reports -->
+        <div class="dashboard-card">
+            <div class="dashboard-card-header">
+                Recent Reports
+            </div>
+            <div class="dashboard-card-body">
+                {% if recent_reports %}
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Listing</th>
+                            <th>Reason</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in recent_reports %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'admin:listings_listing_change' report.listing.id %}">{{ report.listing }}</a>
+                                <a href="{% url 'listing_detail' report.listing.id %}" target="_blank" title="View on site">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </td>
+                            <td>{{ report.get_reason_display }}</td>
+                            <td>{{ report.reported_on|date:"M d, Y" }}</td>
+                            <td>
+                                {% if report.status == 'pending' %}
+                                <span class="status-badge status-pending">Pending</span>
+                                {% elif report.status == 'resolved' %}
+                                <span class="status-badge status-resolved">Resolved</span>
+                                {% else %}
+                                <span class="status-badge status-dismissed">Dismissed</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'admin:listings_listingreport_change' report.id %}" class="button">View</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p>No reports available.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Reports by Reason -->
+        <div class="dashboard-card">
+            <div class="dashboard-card-header">
+                Reports by Reason
+            </div>
+            <div class="dashboard-card-body">
+                {% if reports_by_reason %}
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Reason</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in reports_by_reason %}
+                        <tr>
+                            <td>
+                                {% for code, display in report_reasons %}
+                                    {% if code == report.reason %}
+                                        {{ display }}
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
+                            <td>{{ report.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p>No reports available.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Flagged Listings -->
+        <div class="dashboard-card">
+            <div class="dashboard-card-header">
+                Flagged Listings (Multiple Reports)
+            </div>
+            <div class="dashboard-card-body">
+                {% if flagged_listings %}
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Listing</th>
+                            <th>Seller</th>
+                            <th>Report Count</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for listing in flagged_listings %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'admin:listings_listing_change' listing.id %}">
+                                    <i class="flag-icon">⚠️</i> {{ listing }}
+                                </a>
+                            </td>
+                            <td>
+                                <a href="{% url 'admin:auth_user_change' listing.seller.id %}">
+                                    {{ listing.seller.email }}
+                                </a>
+                            </td>
+                            <td>{{ listing.reports.count }}</td>
+                            <td>
+                                <a href="{% url 'listing_detail' listing.id %}" target="_blank" class="button">View</a>
+                                <a href="{% url 'admin:listings_listingreport_changelist' %}?listing__id__exact={{ listing.id }}" class="button">Reports</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p>No flagged listings available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

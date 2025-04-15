@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Message History" %}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="fs-2 fw-bold text-dark">{% trans "My Messages" %}</h1>
+                <a href="{% url 'contact_us' %}" class="btn btn-primary">{% trans "Send New Message" %}</a>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    {% if contact_messages %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "Subject" %}</th>
+                                        <th>{% trans "Date" %}</th>
+                                        <th>{% trans "Status" %}</th>
+                                        <th>{% trans "Action" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for message in contact_messages %}
+                                        <tr>
+                                            <td>{{ message.subject }}</td>
+                                            <td>{{ message.created_at|date:"M d, Y" }}</td>
+                                            <td>
+                                                {% if message.status == 'new' %}
+                                                    <span class="badge bg-primary">{% trans "New" %}</span>
+                                                {% elif message.status == 'in_progress' %}
+                                                    <span class="badge bg-warning text-dark">{% trans "In Progress" %}</span>
+                                                {% elif message.status == 'resolved' %}
+                                                    <span class="badge bg-success">{% trans "Resolved" %}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'contact_detail' message.id %}" class="btn btn-sm btn-outline-primary">
+                                                    {% trans "View" %}
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-chat-left-text fs-1 text-muted mb-3"></i>
+                            <p class="mb-4">{% trans "You haven't sent any messages yet." %}</p>
+                            <a href="{% url 'contact_us' %}" class="btn btn-primary">{% trans "Send Your First Message" %}</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

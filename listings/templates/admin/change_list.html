@@ -1,0 +1,41 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    .view-link {
+        display: inline-block;
+        background-color: #79aec8;
+        color: white !important;
+        padding: 3px 8px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 11px;
+        transition: background-color 0.3s;
+    }
+    
+    .view-link:hover {
+        background-color: #417690;
+        text-decoration: none;
+    }
+    
+    .view-link i {
+        margin-right: 4px;
+    }
+    
+    /* Custom styling for FontAwesome icons */
+    .fas {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+    }
+    
+    .fas.fa-external-link-alt {
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="white" d="M432,320H400a16,16,0,0,0-16,16V448H64V128H208a16,16,0,0,0,16-16V80a16,16,0,0,0-16-16H48A48,48,0,0,0,0,112V464a48,48,0,0,0,48,48H400a48,48,0,0,0,48-48V336A16,16,0,0,0,432,320ZM488,0h-128c-21.37,0-32.05,25.91-17,41l35.73,35.73L135,320.37a24,24,0,0,0,0,34L157.67,377a24,24,0,0,0,34,0L435.28,133.32,471,169c15,15,41,4.5,41-17V24A24,24,0,0,0,488,0Z"/></svg>');
+    }
+</style>
+{% endblock %} 

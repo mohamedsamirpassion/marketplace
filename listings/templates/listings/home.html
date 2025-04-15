@@ -1,0 +1,704 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Cairo Bazaar" %}{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Simple and reliable styling for filters */
+    .filter-row {
+        margin-bottom: 10px;
+    }
+    .filter-control {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    .filter-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        padding: 15px;
+    }
+    .filter-title {
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+    .filter-btn {
+        height: 38px;
+    }
+    
+    /* Styling for searchable dropdowns */
+    .dropdown-container {
+        position: relative;
+        width: 100%;
+    }
+    
+    .dropdown-search {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 4px 4px 0 0;
+        font-size: 14px;
+        border-bottom: none;
+    }
+    
+    .dropdown-options {
+        display: none;
+        position: absolute;
+        width: 100%;
+        max-height: 200px;
+        overflow-y: auto;
+        background: white;
+        border: 1px solid #ced4da;
+        border-radius: 0 0 4px 4px;
+        z-index: 1000;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .dropdown-option {
+        padding: 8px 12px;
+        cursor: pointer;
+    }
+    
+    .dropdown-option:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .dropdown-container:focus-within .dropdown-options {
+        display: block;
+    }
+    
+    .hidden-select {
+        display: none;
+    }
+    
+    /* For RTL (Arabic) support */
+    html[dir="rtl"] .dropdown-search {
+        text-align: right;
+    }
+    html[dir="rtl"] .filter-control {
+        text-align: right;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <!-- Top Banner Ad -->
+    {% for ad in ad_spaces %}
+        {% if ad.location_on_page == 'top_banner' and ad.is_active %}
+            <div class="mb-4 text-center">
+                {{ ad.ad_network_code|safe }}
+            </div>
+        {% endif %}
+    {% endfor %}
+
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-md-9">
+                <h1 class="mb-4 text-dark fw-bold">{% trans "Cars for Sale" %}</h1>
+
+                <!-- Filter Form -->
+                <div class="filter-card">
+                    <h5 class="filter-title">{% trans "Filter Listings" %}</h5>
+                    
+                    <form method="get" id="filterForm">
+                        <!-- First row: Brand, Model, Location, Year -->
+                        <div class="row filter-row">
+                            <div class="col-md-3 col-6 mb-2">
+                                <!-- Searchable Brand Dropdown -->
+                                <div class="dropdown-container">
+                                    <input type="text" id="brandSearch" class="dropdown-search" placeholder="{% trans 'Search Brand...' %}" autocomplete="off">
+                                    <div class="dropdown-options" id="brandOptions">
+                                        <div class="dropdown-option" data-value="">{% trans "All Brands" %}</div>
+                                        {% for brand in brands %}
+                                            <div class="dropdown-option" data-value="{{ brand.id }}">{{ brand.name }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    <select name="brand" id="brand" class="hidden-select">
+                                        <option value="">{% trans "All Brands" %}</option>
+                                        {% for brand in brands %}
+                                            <option value="{{ brand.id }}" {% if request.GET.brand == brand.id|stringformat:"s" %}selected{% endif %}>{{ brand.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6 mb-2">
+                                <!-- Searchable Model Dropdown -->
+                                <div class="dropdown-container">
+                                    <input type="text" id="modelSearch" class="dropdown-search" placeholder="{% trans 'Search Model...' %}" autocomplete="off" {% if not selected_brand %}disabled{% endif %}>
+                                    <div class="dropdown-options" id="modelOptions">
+                                        <div class="dropdown-option" data-value="">{% trans "All Models" %}</div>
+                                        {% for model in models %}
+                                            <div class="dropdown-option" data-value="{{ model.id }}">{{ model.name }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    <select name="model" id="model" class="hidden-select" {% if not selected_brand %}disabled{% endif %}>
+                                        <option value="">{% trans "All Models" %}</option>
+                                        {% for model in models %}
+                                            <option value="{{ model.id }}" {% if request.GET.model == model.id|stringformat:"s" %}selected{% endif %}>{{ model.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6 mb-2">
+                                <select name="governorate" id="governorate" class="filter-control">
+                                    <option value="">{% trans "All Locations" %}</option>
+                                    {% for gov in governorates %}
+                                        <option value="{{ gov }}" {% if request.GET.governorate == gov %}selected{% endif %}>{{ gov }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3 col-6 mb-2">
+                                <input type="number" name="year" id="year" class="filter-control" value="{{ request.GET.year }}" placeholder="{% trans 'Year' %}">
+                            </div>
+                        </div>
+                        
+                        <!-- Second row: Price and Mileage -->
+                        <div class="row filter-row">
+                            <div class="col-md-3 col-6 mb-2">
+                                <input type="number" name="price_min" id="price_min" class="filter-control" value="{{ request.GET.price_min }}" placeholder="{% trans 'Min Price' %}">
+                            </div>
+                            <div class="col-md-3 col-6 mb-2">
+                                <input type="number" name="price_max" id="price_max" class="filter-control" value="{{ request.GET.price_max }}" placeholder="{% trans 'Max Price' %}">
+                            </div>
+                            <div class="col-md-3 col-6 mb-2">
+                                <input type="number" name="mileage_min" id="mileage_min" class="filter-control" value="{{ request.GET.mileage_min }}" placeholder="{% trans 'Min Mileage (km)' %}">
+                            </div>
+                            <div class="col-md-3 col-6 mb-2">
+                                <input type="number" name="mileage_max" id="mileage_max" class="filter-control" value="{{ request.GET.mileage_max }}" placeholder="{% trans 'Max Mileage (km)' %}">
+                            </div>
+                        </div>
+                        
+                        <!-- Third row: Additional filters and buttons -->
+                        <div class="row filter-row">
+                            <div class="col-md-2 col-4 mb-2">
+                                <select name="condition" id="condition" class="filter-control">
+                                    <option value="">{% trans "Condition" %}</option>
+                                    {% for value, label in conditions %}
+                                        <option value="{{ value }}" {% if request.GET.condition == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2 col-4 mb-2">
+                                <select name="transmission" id="transmission" class="filter-control">
+                                    <option value="">{% trans "Transmission" %}</option>
+                                    {% for value, label in transmissions %}
+                                        <option value="{{ value }}" {% if request.GET.transmission == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2 col-4 mb-2">
+                                <select name="fuel_type" id="fuel_type" class="filter-control">
+                                    <option value="">{% trans "Fuel Type" %}</option>
+                                    {% for value, label in fuel_types %}
+                                        <option value="{{ value }}" {% if request.GET.fuel_type == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 col-12 mb-2">
+                                <div class="d-flex">
+                                    <button type="submit" class="btn btn-primary filter-btn me-2 w-50">{% trans "Filter" %}</button>
+                                    <a href="{% url 'home' %}" class="btn btn-outline-secondary filter-btn w-50">{% trans "Clear" %}</a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Sorting Dropdown -->
+                <div class="d-flex justify-content-end mb-4">
+                    <form method="get" class="d-inline">
+                        <!-- Preserve existing filter parameters -->
+                        {% for key, value in request.GET.items %}
+                            {% if key != 'sort' %}
+                                <input type="hidden" name="{{ key }}" value="{{ value }}">
+                            {% endif %}
+                        {% endfor %}
+                        <label for="sort" class="form-label me-2 text-muted">{% trans "Sort by:" %}</label>
+                        <select name="sort" id="sort" class="form-select form-select-sm d-inline w-auto" onchange="this.form.submit()">
+                            <option value="newly_listed" {% if request.GET.sort == "newly_listed" or not request.GET.sort %}selected{% endif %}>{% trans "Newly Listed" %}</option>
+                            <option value="lowest_price" {% if request.GET.sort == "lowest_price" %}selected{% endif %}>{% trans "Lowest Price" %}</option>
+                            <option value="highest_price" {% if request.GET.sort == "highest_price" %}selected{% endif %}>{% trans "Highest Price" %}</option>
+                            <option value="lowest_mileage" {% if request.GET.sort == "lowest_mileage" %}selected{% endif %}>{% trans "Lowest Mileage" %}</option>
+                        </select>
+                    </form>
+                </div>
+
+                <!-- Listings -->
+                <div class="row">
+                    {% for listing in listings %}
+                        <div class="col-md-4 mb-4">
+                            <a href="{% url 'listing_detail' listing.pk %}" class="text-decoration-none">
+                                <div class="card listing-card h-100 shadow-sm">
+                                    {% if listing.images.all %}
+                                        <div id="carousel-{{ listing.pk }}" class="carousel slide" data-bs-ride="carousel">
+                                            <div class="carousel-inner">
+                                                {% for image in listing.images.all %}
+                                                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                                        <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ listing.brand.name }} {{ listing.model.name }}" style="height: 200px; object-fit: cover; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem;">
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                            <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ listing.pk }}" data-bs-slide="prev">
+                                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                <span class="visually-hidden">Previous</span>
+                                            </button>
+                                            <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ listing.pk }}" data-bs-slide="next">
+                                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                <span class="visually-hidden">Next</span>
+                                            </button>
+                                        </div>
+                                    {% endif %}
+                                    <div class="card-body">
+                                        {% if user.is_authenticated %}
+                                            <div class="position-absolute top-0 end-0 p-2">
+                                                <form id="favorite-form-{{ listing.pk }}" action="{% url 'toggle_favorite' listing.pk %}" method="post">
+                                                    {% csrf_token %}
+                                                    <button type="button" class="btn btn-sm btn-favorite" onclick="event.preventDefault(); event.stopPropagation(); toggleFavorite({{ listing.pk }})">
+                                                        <i class="bi {% if listing.pk in favorited_listings %}bi-heart-fill text-danger{% else %}bi-heart{% endif %}"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        {% endif %}
+                                        <h5 class="card-title text-dark mb-2">{{ listing.brand.name }} {{ listing.model.name }} ({{ listing.year }})</h5>
+                                        <p class="card-text text-muted small">
+                                            <i class="bi bi-currency-dollar me-1"></i> {{ listing.price }} EGP<br>
+                                            <i class="bi bi-speedometer2 me-1"></i> {{ listing.mileage }} km<br>
+                                            <i class="bi bi-gear me-1"></i> {{ listing.transmission }}<br>
+                                            <i class="bi bi-fuel-pump me-1"></i> {{ listing.fuel_type }}<br>
+                                            <i class="bi bi-geo-alt me-1"></i> {{ listing.full_location }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    {% empty %}
+                        <div class="col-12">
+                            <p class="text-muted">{% trans "No listings available." %}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination Controls -->
+                {% if page_obj.has_other_pages %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center mt-4">
+                            <!-- Previous Page Link -->
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                                        <span aria-hidden="true">« Previous</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" aria-label="Previous">
+                                        <span aria-hidden="true">« Previous</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+
+                            <!-- Page Numbers -->
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item"><a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            <!-- Next Page Link -->
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" aria-label="Next">
+                                        <span aria-hidden="true">Next »</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" aria-label="Next">
+                                        <span aria-hidden="true">Next »</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            </div>
+            <!-- Sidebar Ad -->
+            <div class="col-md-3">
+                {% for ad in ad_spaces %}
+                    {% if ad.location_on_page == 'sidebar' and ad.is_active %}
+                        <div class="sticky-top sidebar-ad" style="top: 20px;">
+                            {{ ad.ad_network_code|safe }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* General Page Styling */
+        body {
+            background-color: #f5f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container-fluid {
+            max-width: 1400px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        /* Filter Card */
+        .card {
+            border: none;
+            border-radius: 0.75rem;
+            background-color: #ffffff;
+        }
+
+        .card-body {
+            padding: 1.25rem;
+        }
+
+        .btn-sm {
+            font-size: 0.875rem;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+        .btn-outline-secondary {
+            border-color: #ced4da;
+            color: #6c757d;
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: #f8f9fa;
+            border-color: #ced4da;
+        }
+
+        /* Listing Cards */
+        .listing-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .listing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .card-text {
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .card-text i {
+            color: #6c757d;
+            width: 20px;
+        }
+
+        /* Pagination */
+        .pagination .page-link {
+            border-radius: 0.375rem;
+            color: #007bff;
+            border: 1px solid #dee2e6;
+            margin: 0 2px;
+            padding: 0.5rem 0.75rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: #ffffff;
+        }
+
+        .pagination .page-link:hover {
+            background-color: #e9ecef;
+        }
+
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #f8f9fa;
+        }
+
+        /* Sidebar Ad */
+        .sidebar-ad {
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 767.98px) {
+            .form-select-sm, .form-control-sm {
+                font-size: 0.85rem;
+            }
+
+            .btn-sm {
+                font-size: 0.85rem;
+            }
+
+            .card-title {
+                font-size: 1rem;
+            }
+
+            .card-text {
+                font-size: 0.85rem;
+            }
+        }
+
+        .btn-favorite {
+            background: none;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .btn-favorite:hover {
+            transform: scale(1.2);
+            transition: transform 0.2s;
+        }
+        
+        .btn-favorite i {
+            font-size: 1.2rem;
+            filter: drop-shadow(0px 0px 1px white);
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Searchable dropdowns functionality
+            function setupSearchableDropdown(searchEl, optionsEl, selectEl) {
+                if (!searchEl || !optionsEl || !selectEl) return;
+                
+                // Set initial value of search field to match the selected option
+                const selectedOption = selectEl.options[selectEl.selectedIndex];
+                if (selectedOption) {
+                    searchEl.value = selectedOption.text;
+                }
+                
+                // Filter dropdown options as user types
+                searchEl.addEventListener('input', function() {
+                    const searchText = this.value.toLowerCase();
+                    const options = optionsEl.querySelectorAll('.dropdown-option');
+                    
+                    options.forEach(option => {
+                        const optionText = option.textContent.toLowerCase();
+                        if (optionText.includes(searchText)) {
+                            option.style.display = 'block';
+                        } else {
+                            option.style.display = 'none';
+                        }
+                    });
+                });
+                
+                // Handle option selection
+                optionsEl.querySelectorAll('.dropdown-option').forEach(option => {
+                    option.addEventListener('click', function() {
+                        const value = this.getAttribute('data-value');
+                        const text = this.textContent;
+                        
+                        // Update search input text
+                        searchEl.value = text;
+                        
+                        // Update hidden select value
+                        for (let i = 0; i < selectEl.options.length; i++) {
+                            if (selectEl.options[i].value === value) {
+                                selectEl.selectedIndex = i;
+                                break;
+                            }
+                        }
+                        
+                        // Trigger change event on select
+                        const event = new Event('change');
+                        selectEl.dispatchEvent(event);
+                        
+                        // Close dropdown
+                        optionsEl.style.display = 'none';
+                    });
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!searchEl.contains(event.target) && !optionsEl.contains(event.target)) {
+                        optionsEl.style.display = 'none';
+                    }
+                });
+                
+                // Open dropdown when clicking on search input
+                searchEl.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    optionsEl.style.display = 'block';
+                });
+            }
+            
+            // Setup brand searchable dropdown
+            setupSearchableDropdown(
+                document.getElementById('brandSearch'),
+                document.getElementById('brandOptions'),
+                document.getElementById('brand')
+            );
+            
+            // Setup model searchable dropdown
+            setupSearchableDropdown(
+                document.getElementById('modelSearch'),
+                document.getElementById('modelOptions'),
+                document.getElementById('model')
+            );
+
+            // Get the brand and model select elements
+            const brandSelect = document.getElementById('brand');
+            const modelSelect = document.getElementById('model');
+            const modelSearch = document.getElementById('modelSearch');
+            const modelOptions = document.getElementById('modelOptions');
+            
+            // Add change event listener to the brand select
+            if (brandSelect && modelSelect) {
+                brandSelect.addEventListener('change', function() {
+                    const brandId = this.value;
+                    
+                    // Clear the model select options except the first one
+                    while (modelSelect.options.length > 1) {
+                        modelSelect.remove(1);
+                    }
+                    
+                    // Clear model options
+                    const firstOption = modelOptions.querySelector('.dropdown-option');
+                    modelOptions.innerHTML = '';
+                    if (firstOption) {
+                        modelOptions.appendChild(firstOption);
+                    }
+                    
+                    // Enable/disable the model select based on whether a brand is selected
+                    if (brandId === '') {
+                        modelSelect.disabled = true;
+                        modelSearch.disabled = true;
+                        modelSearch.value = '';
+                        return;
+                    }
+                    
+                    // Enable the model select and search input
+                    modelSelect.disabled = false;
+                    modelSearch.disabled = false;
+                    modelSearch.value = 'Loading...';
+                    
+                    // Fetch the models for the selected brand
+                    fetch('/get-models/?brand_id=' + brandId)
+                        .then(response => response.json())
+                        .then(data => {
+                            // Clear loading state
+                            modelSearch.value = '';
+                            
+                            // Add the models to the select and dropdown options
+                            if (data.models && data.models.length > 0) {
+                                data.models.forEach(model => {
+                                    // Add to select
+                                    const option = document.createElement('option');
+                                    option.value = model.id;
+                                    option.text = model.name;
+                                    modelSelect.add(option);
+                                    
+                                    // Add to dropdown options
+                                    const dropdownOption = document.createElement('div');
+                                    dropdownOption.className = 'dropdown-option';
+                                    dropdownOption.setAttribute('data-value', model.id);
+                                    dropdownOption.textContent = model.name;
+                                    modelOptions.appendChild(dropdownOption);
+                                    
+                                    // Add click event to new dropdown option
+                                    dropdownOption.addEventListener('click', function() {
+                                        const value = this.getAttribute('data-value');
+                                        const text = this.textContent;
+                                        
+                                        // Update search input text
+                                        modelSearch.value = text;
+                                        
+                                        // Update hidden select value
+                                        for (let i = 0; i < modelSelect.options.length; i++) {
+                                            if (modelSelect.options[i].value === value) {
+                                                modelSelect.selectedIndex = i;
+                                                break;
+                                            }
+                                        }
+                                        
+                                        // Close dropdown
+                                        modelOptions.style.display = 'none';
+                                    });
+                                });
+                            } else {
+                                modelSearch.value = 'No models available';
+                                modelSearch.disabled = true;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching models:', error);
+                            modelSearch.value = 'Error loading models';
+                            modelSearch.disabled = true;
+                        });
+                });
+                
+                // If a brand is already selected on page load, trigger the change event
+                if (brandSelect.value) {
+                    // Create and dispatch a change event
+                    const event = new Event('change');
+                    brandSelect.dispatchEvent(event);
+                }
+            }
+        });
+
+        function toggleFavorite(listingId) {
+            if (!document.getElementById('favorite-form-' + listingId)) return;
+            
+            const form = document.getElementById('favorite-form-' + listingId);
+            const formData = new FormData(form);
+            const icon = form.querySelector('i');
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.is_favorited) {
+                    icon.classList.remove('bi-heart');
+                    icon.classList.add('bi-heart-fill', 'text-danger');
+                } else {
+                    icon.classList.remove('bi-heart-fill', 'text-danger');
+                    icon.classList.add('bi-heart');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+{% endblock %}

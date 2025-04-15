@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: cairo-bazaar
+    env: python
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    startCommand: gunicorn marketplace.wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.7
+      - key: DEBUG
+        value: False
+      - key: SECRET_KEY
+        generateValue: true
+      - key: SITE_URL
+        value: https://cairo-bazaar.onrender.com
+      - key: EMAIL_HOST
+        sync: false
+      - key: EMAIL_PORT
+        sync: false
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: EMAIL_USE_TLS
+        value: True
+      - key: DATABASE_URL
+        sync: false
+
+databases:
+  - name: cairo-bazaar-db
+    databaseName: cairo_bazaar
+    user: cairo_bazaar 

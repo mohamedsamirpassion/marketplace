@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Message Detail" %}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="fs-3 fw-bold text-dark">{% trans "Message Detail" %}</h1>
+                <div>
+                    <a href="{% url 'contact_history' %}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-arrow-left"></i> {% trans "Back to Messages" %}
+                    </a>
+                    <a href="{% url 'contact_us' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> {% trans "New Message" %}
+                    </a>
+                </div>
+            </div>
+            
+            <!-- User Message -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">{{ message.subject }}</h5>
+                            <small class="text-muted">{{ message.created_at|date:"F d, Y - h:i A" }}</small>
+                        </div>
+                        <div>
+                            {% if message.status == 'new' %}
+                                <span class="badge bg-primary">{% trans "New" %}</span>
+                            {% elif message.status == 'in_progress' %}
+                                <span class="badge bg-warning text-dark">{% trans "In Progress" %}</span>
+                            {% elif message.status == 'resolved' %}
+                                <span class="badge bg-success">{% trans "Resolved" %}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">{% trans "Your Message:" %}</h6>
+                    <p class="card-text">{{ message.message|linebreaks }}</p>
+                </div>
+            </div>
+            
+            <!-- Admin Response -->
+            {% if message.admin_response %}
+            <div class="card shadow-sm mb-4 border-success">
+                <div class="card-header bg-success text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">{% trans "Admin Response" %}</h5>
+                            {% if message.responded_at %}
+                                <small class="text-white-50">{{ message.responded_at|date:"F d, Y - h:i A" }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ message.admin_response|linebreaks }}</p>
+                </div>
+            </div>
+            {% else %}
+                {% if message.status == 'in_progress' %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i> {% trans "Our team is currently reviewing your message. We'll respond as soon as possible." %}
+                    </div>
+                {% elif message.status == 'new' %}
+                    <div class="alert alert-secondary">
+                        <i class="bi bi-clock me-2"></i> {% trans "We've received your message and will respond soon." %}
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

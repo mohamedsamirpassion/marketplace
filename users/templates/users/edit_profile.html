@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% block title %}Edit Profile{% endblock %}
+{% block extra_head %}
+<style>
+    .phone-input-group {
+        display: flex;
+    }
+    .country-code {
+        width: 100px;
+        flex-shrink: 0;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+    .phone-number {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Edit Your Profile</h4>
+                </div>
+                <div class="card-body">
+                    {% if user.socialaccount_set.all %}
+                    <!-- Special form for social users -->
+                    <div class="alert alert-info mb-3">
+                        <strong>Social Account:</strong> You're signed in with {{ user.socialaccount_set.first.provider|title }}. Only basic profile information can be edited.
+                    </div>
+                    
+                    <form method="post" action="{% url 'direct_update_profile' %}">
+                        {% csrf_token %}
+                        
+                        <!-- Messages -->
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        <!-- Basic Information -->
+                        <h5 class="mb-3">Basic Information</h5>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ user.name }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email (Cannot be changed)</label>
+                            <input type="email" class="form-control" id="email" value="{{ user.email }}" readonly>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <div class="phone-input-group">
+                                <select class="form-select country-code" id="country_code" name="country_code">
+                                    <option value="+20" {% if user.country_code == '+20' %}selected{% endif %}>🇪🇬 +20</option>
+                                    <option value="+1" {% if user.country_code == '+1' %}selected{% endif %}>🇺🇸 +1</option>
+                                    <option value="+44" {% if user.country_code == '+44' %}selected{% endif %}>🇬🇧 +44</option>
+                                    <option value="+966" {% if user.country_code == '+966' %}selected{% endif %}>🇸🇦 +966</option>
+                                    <option value="+971" {% if user.country_code == '+971' %}selected{% endif %}>🇦🇪 +971</option>
+                                    <option value="+974" {% if user.country_code == '+974' %}selected{% endif %}>🇶🇦 +974</option>
+                                    <option value="+965" {% if user.country_code == '+965' %}selected{% endif %}>🇰🇼 +965</option>
+                                    <option value="+962" {% if user.country_code == '+962' %}selected{% endif %}>🇯🇴 +962</option>
+                                    <option value="+961" {% if user.country_code == '+961' %}selected{% endif %}>🇱🇧 +961</option>
+                                    <option value="+963" {% if user.country_code == '+963' %}selected{% endif %}>🇸🇾 +963</option>
+                                    <!-- Add more countries as needed -->
+                                </select>
+                                <input type="text" class="form-control phone-number" id="phone" name="phone" value="{{ user.phone_number }}" placeholder="Without country code">
+                            </div>
+                            <div class="form-text">
+                                For Egyptian numbers: Enter 10 digits (e.g., 1273477447) without the leading 0.<br>
+                                If you typically write 01273477447, please enter 1273477447 instead.
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="has_whatsapp" name="has_whatsapp" {% if user.has_whatsapp %}checked{% endif %}>
+                            <label class="form-check-label" for="has_whatsapp">This number has WhatsApp</label>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-1"></i> Save Changes
+                            </button>
+                            <a href="{% url 'user_profile' user.pk %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-1"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                    {% else %}
+                    <!-- Regular form for normal users -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Messages -->
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        <!-- Basic Information -->
+                        <h5 class="mb-3">Basic Information</h5>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ user.name }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email (Cannot be changed)</label>
+                            <input type="email" class="form-control" id="email" value="{{ user.email }}" readonly>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <div class="phone-input-group">
+                                <select class="form-select country-code" id="country_code" name="country_code">
+                                    <option value="+20" {% if user.country_code == '+20' %}selected{% endif %}>🇪🇬 +20</option>
+                                    <option value="+1" {% if user.country_code == '+1' %}selected{% endif %}>🇺🇸 +1</option>
+                                    <option value="+44" {% if user.country_code == '+44' %}selected{% endif %}>🇬🇧 +44</option>
+                                    <option value="+966" {% if user.country_code == '+966' %}selected{% endif %}>🇸🇦 +966</option>
+                                    <option value="+971" {% if user.country_code == '+971' %}selected{% endif %}>🇦🇪 +971</option>
+                                    <option value="+974" {% if user.country_code == '+974' %}selected{% endif %}>🇶🇦 +974</option>
+                                    <option value="+965" {% if user.country_code == '+965' %}selected{% endif %}>🇰🇼 +965</option>
+                                    <option value="+962" {% if user.country_code == '+962' %}selected{% endif %}>🇯🇴 +962</option>
+                                    <option value="+961" {% if user.country_code == '+961' %}selected{% endif %}>🇱🇧 +961</option>
+                                    <option value="+963" {% if user.country_code == '+963' %}selected{% endif %}>🇸🇾 +963</option>
+                                    <!-- Add more countries as needed -->
+                                </select>
+                                <input type="text" class="form-control phone-number" id="phone" name="phone" value="{{ user.phone_number }}" placeholder="Without country code">
+                            </div>
+                            <div class="form-text">
+                                For Egyptian numbers: Enter 10 digits (e.g., 1273477447) without the leading 0.<br>
+                                If you typically write 01273477447, please enter 1273477447 instead.
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="has_whatsapp" name="has_whatsapp" {% if user.has_whatsapp %}checked{% endif %}>
+                            <label class="form-check-label" for="has_whatsapp">This number has WhatsApp</label>
+                        </div>
+                        
+                        <!-- Change Password Section -->
+                        <h5 class="mb-3 mt-4">Change Password</h5>
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">Current Password</label>
+                            <input type="password" class="form-control" id="current_password" name="current_password">
+                            <div class="form-text">Leave password fields blank if you don't want to change it.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password">
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-1"></i> Save Changes
+                            </button>
+                            <a href="{% url 'user_profile' user.pk %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-1"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "admin/index.html" %}
+{% load i18n %}
+
+{% block content %}
+{{ block.super }}
+
+<div class="module">
+    <h2>{% trans "Report Management" %}</h2>
+    <table>
+        <tbody>
+            <tr>
+                <th scope="row">
+                    <a href="{% url 'admin_report_dashboard' %}">Report Dashboard</a>
+                </th>
+                <td></td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %} 

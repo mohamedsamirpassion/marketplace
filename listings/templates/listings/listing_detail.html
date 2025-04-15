@@ -1,0 +1,330 @@
+{% extends 'base.html' %}
+{% block title %}{{ listing.brand.name }} {{ listing.model.name }} ({{ listing.year }}){% endblock %}
+{% block content %}
+    <div class="container py-5">
+        <!-- Admin notification for unapproved listings -->
+        {% if not listing.approved and is_admin %}
+        <div class="alert alert-info mb-4">
+            <i class="bi bi-info-circle me-2"></i> <strong>Admin Note:</strong> You're viewing this page because you're an admin. Regular users cannot see unapproved listings.
+        </div>
+        {% endif %}
+        
+        <!-- Messages -->
+        {% if messages %}
+            <div class="messages mb-4">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <div class="row">
+            <!-- Listing Images -->
+            <div class="col-md-6">
+                {% if listing.images.all %}
+                    <div id="listingCarousel" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner">
+                            {% for image in listing.images.all %}
+                                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                    <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ listing.brand.name }} {{ listing.model.name }}" style="height: 400px; object-fit: cover; border-radius: 0.75rem;">
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#listingCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#listingCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No images available.</p>
+                {% endif %}
+            </div>
+
+            <!-- Listing Details -->
+            <div class="col-md-6">
+                <h1 class="mb-3 text-dark fw-bold">{{ listing.brand.name }} {{ listing.model.name }} ({{ listing.year }})</h1>
+                <p class="text-muted mb-4">Posted on: {{ listing.date_posted|date:"F d, Y" }}</p>
+                
+                {% if not listing.approved and is_admin %}
+                    <div class="alert alert-warning mb-4">
+                        <i class="bi bi-exclamation-triangle me-2"></i> <strong>Admin View:</strong> This listing is pending approval
+                        <form method="post" action="{% url 'admin:listings_listing_changelist' %}" class="mt-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="approve_listings">
+                            <input type="hidden" name="_selected_action" value="{{ listing.pk }}">
+                            <input type="hidden" name="return_url" value="{{ request.path }}">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle"></i> Approve Listing
+                            </button>
+                            <a href="{% url 'admin:listings_listing_change' listing.pk %}" class="btn btn-primary ms-2">
+                                <i class="bi bi-pencil"></i> Edit in Admin
+                            </a>
+                        </form>
+                    </div>
+                {% endif %}
+                
+                {% if listing.is_sold %}
+                    <div class="alert alert-warning mb-4">
+                        <i class="bi bi-tag-fill me-2"></i> This item has been marked as <strong>SOLD</strong>
+                        {% if listing.sold_date %}
+                            on {{ listing.sold_date|date:"F d, Y" }}
+                        {% endif %}
+                    </div>
+                {% endif %}
+                
+                {% if is_owner %}
+                    <div class="mb-4">
+                        <form method="post" action="{% url 'mark_as_sold' listing.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            {% if listing.is_sold %}
+                                <input type="hidden" name="action" value="mark_unsold">
+                                <button type="submit" class="btn btn-outline-primary">
+                                    <i class="bi bi-tag"></i> Mark as Available
+                                </button>
+                            {% else %}
+                                <input type="hidden" name="action" value="mark_sold">
+                                <button type="submit" class="btn btn-outline-success">
+                                    <i class="bi bi-tag-fill"></i> Mark as Sold
+                                </button>
+                            {% endif %}
+                        </form>
+                    </div>
+                {% endif %}
+                
+                <div class="mb-4 d-flex">
+                    <a href="{% url 'user_profile' listing.seller.id %}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-list"></i> View Seller's Listings
+                    </a>
+                    
+                    {% if user.is_authenticated and not is_owner %}
+                        <form id="favorite-form" action="{% url 'toggle_favorite' listing.pk %}" method="post" class="me-2">
+                            {% csrf_token %}
+                            <button type="button" class="btn {% if is_favorited %}btn-danger{% else %}btn-outline-danger{% endif %}" id="favorite-button" onclick="toggleFavorite()">
+                                <i class="bi {% if is_favorited %}bi-heart-fill{% else %}bi-heart{% endif %}"></i> 
+                                {% if is_favorited %}Remove from Favorites{% else %}Add to Favorites{% endif %}
+                            </button>
+                        </form>
+                        
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#reportModal">
+                            <i class="bi bi-flag"></i> Report Listing
+                        </button>
+                    {% endif %}
+                </div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title text-dark">Details</h5>
+                        <p class="card-text">
+                            <i class="bi bi-currency-dollar me-1"></i> Price: {{ listing.price }} EGP<br>
+                            <i class="bi bi-speedometer2 me-1"></i> Mileage: {{ listing.mileage }} km<br>
+                            <i class="bi bi-gear me-1"></i> Transmission: {{ listing.transmission }}<br>
+                            <i class="bi bi-fuel-pump me-1"></i> Fuel Type: {{ listing.fuel_type }}<br>
+                            <i class="bi bi-geo-alt me-1"></i> Location: {{ listing.full_location }}<br>
+                            <i class="bi bi-car-front me-1"></i> Condition: {{ listing.condition }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title text-dark">Description</h5>
+                        <p class="card-text">{{ listing.description|default:"No description provided." }}</p>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title text-dark">Seller Information</h5>
+                        <p class="card-text">
+                            Seller: <a href="{% url 'user_profile' listing.seller.id %}" class="text-decoration-none">{{ listing.seller.name }}</a><br>
+                            {% if listing.seller.phone_number %}
+                                <span id="phone-number" data-phone="{{ listing.seller.get_full_phone_number }}" class="text-muted">
+                                    {{ listing.seller.country_code }} {{ listing.seller.phone_number|slice:":3" }}****{{ listing.seller.phone_number|slice:"-2:" }}
+                                </span>
+                                <button id="reveal-button" class="btn btn-primary btn-sm ms-2">Reveal Number</button>
+                                
+                                {% if listing.seller.has_whatsapp %}
+                                <div class="mt-2">
+                                    <a href="{{ whatsapp_link }}" target="_blank" class="btn btn-success">
+                                        <i class="bi bi-whatsapp"></i> Contact on WhatsApp
+                                    </a>
+                                </div>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Phone number not provided.</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Ad -->
+        <div class="row mt-4">
+            <div class="col-12">
+                {% for ad in ad_spaces %}
+                    {% if ad.location_on_page == 'sidebar' and ad.is_active %}
+                        <div class="text-center">
+                            {{ ad.ad_network_code|safe }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    {% if user.is_authenticated %}
+    <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="reportModalLabel"><i class="bi bi-flag me-2"></i>Report Listing</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" action="{% url 'report_listing' listing.pk %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <p>Please help us understand why you're reporting this listing.</p>
+                        
+                        <div class="mb-3">
+                            <label for="reason" class="form-label">Reason for reporting</label>
+                            <select class="form-select" id="reason" name="reason" required>
+                                <option value="">Select a reason</option>
+                                <option value="spam">Spam or Misleading</option>
+                                <option value="fraud">Fraudulent Listing</option>
+                                <option value="offensive">Offensive Content</option>
+                                <option value="wrong_info">Incorrect Information</option>
+                                <option value="fake_images">Fake Images</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="comment" class="form-label">Additional details (optional)</label>
+                            <textarea class="form-control" id="comment" name="comment" rows="3" placeholder="Please provide any additional details that would help us investigate this report."></textarea>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <small>
+                                <i class="bi bi-info-circle me-1"></i>
+                                Your report will be reviewed by our team. We appreciate your help in keeping our Cairo Bazaar safe.
+                            </small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">Submit Report</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <style>
+        body {
+            background-color: #f5f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .card {
+            border: none;
+            border-radius: 0.75rem;
+            background-color: #ffffff;
+        }
+
+        .card-body {
+            padding: 1.25rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .card-text {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #6c757d;
+        }
+
+        .card-text i {
+            color: #6c757d;
+            width: 20px;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const revealButton = document.getElementById('reveal-button');
+            const phoneNumberSpan = document.getElementById('phone-number');
+
+            if (revealButton && phoneNumberSpan) {
+                revealButton.addEventListener('click', function() {
+                    const fullPhoneNumber = phoneNumberSpan.getAttribute('data-phone');
+                    phoneNumberSpan.textContent = fullPhoneNumber;
+                    revealButton.style.display = 'none';
+                });
+            }
+        });
+        
+        function toggleFavorite() {
+            const form = document.getElementById('favorite-form');
+            const formData = new FormData(form);
+            const button = document.getElementById('favorite-button');
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.is_favorited) {
+                    button.classList.remove('btn-outline-danger');
+                    button.classList.add('btn-danger');
+                    button.innerHTML = '<i class="bi bi-heart-fill"></i> Remove from Favorites';
+                } else {
+                    button.classList.remove('btn-danger');
+                    button.classList.add('btn-outline-danger');
+                    button.innerHTML = '<i class="bi bi-heart"></i> Add to Favorites';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+{% endblock %}

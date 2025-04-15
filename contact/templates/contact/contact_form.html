@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Contact Us" %}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">{% trans "Contact Us" %}</h4>
+                </div>
+                <div class="card-body">
+                    <p class="card-text mb-4">{% trans "Have a question or feedback? We'd love to hear from you. Fill out the form below and we'll get back to you as soon as possible." %}</p>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.subject.id_for_label }}" class="form-label">{% trans "Subject" %}*</label>
+                            {{ form.subject }}
+                            {% if form.subject.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.subject.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.message.id_for_label }}" class="form-label">{% trans "Message" %}*</label>
+                            {{ form.message }}
+                            {% if form.message.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.message.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <p class="text-muted">
+                                <small>{% trans "Your message will be sent from" %}: <strong>{{ user.email }}</strong></small>
+                            </p>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">{% trans "Send Message" %}</button>
+                            <a href="{% url 'contact_history' %}" class="btn btn-outline-secondary">{% trans "View Message History" %}</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

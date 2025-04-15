@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}My Favorites{% endblock %}
+
+{% block content %}
+    <!-- Top Banner Ad -->
+    {% for ad in ad_spaces %}
+        {% if ad.location_on_page == 'top_banner' and ad.is_active %}
+            <div class="mb-4 text-center">
+                {{ ad.ad_network_code|safe }}
+            </div>
+        {% endif %}
+    {% endfor %}
+
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-md-9">
+                <h1 class="mb-4 text-dark fw-bold">My Favorite Listings</h1>
+
+                {% if favorites %}
+                    <div class="row">
+                        {% for favorite in favorites %}
+                            <div class="col-md-4 mb-4">
+                                <a href="{% url 'listing_detail' favorite.listing.pk %}" class="text-decoration-none">
+                                    <div class="card listing-card h-100 shadow-sm">
+                                        {% if favorite.listing.images.all %}
+                                            <div id="carousel-{{ favorite.listing.pk }}" class="carousel slide" data-bs-ride="carousel">
+                                                <div class="carousel-inner">
+                                                    {% for image in favorite.listing.images.all %}
+                                                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                                            <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ favorite.listing.brand.name }} {{ favorite.listing.model.name }}" style="height: 200px; object-fit: cover; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem;">
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                                <button class="carousel-control-prev" type="button" data-bs-target="#carousel-{{ favorite.listing.pk }}" data-bs-slide="prev">
+                                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                    <span class="visually-hidden">Previous</span>
+                                                </button>
+                                                <button class="carousel-control-next" type="button" data-bs-target="#carousel-{{ favorite.listing.pk }}" data-bs-slide="next">
+                                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                    <span class="visually-hidden">Next</span>
+                                                </button>
+                                            </div>
+                                        {% endif %}
+                                        <div class="card-body">
+                                            <div class="position-absolute top-0 end-0 p-2">
+                                                <form id="favorite-form-{{ favorite.listing.pk }}" action="{% url 'toggle_favorite' favorite.listing.pk %}" method="post">
+                                                    {% csrf_token %}
+                                                    <button type="button" class="btn btn-sm btn-favorite" onclick="toggleFavorite({{ favorite.listing.pk }})">
+                                                        <i class="bi bi-heart-fill text-danger"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+
+                                            <h5 class="card-title text-dark mb-2">{{ favorite.listing.brand.name }} {{ favorite.listing.model.name }} ({{ favorite.listing.year }})</h5>
+                                            <p class="card-text text-muted small">
+                                                <i class="bi bi-currency-dollar me-1"></i> {{ favorite.listing.price }} EGP<br>
+                                                <i class="bi bi-speedometer2 me-1"></i> {{ favorite.listing.mileage }} km<br>
+                                                <i class="bi bi-gear me-1"></i> {{ favorite.listing.transmission }}<br>
+                                                <i class="bi bi-fuel-pump me-1"></i> {{ favorite.listing.fuel_type }}<br>
+                                                <i class="bi bi-geo-alt me-1"></i> {{ favorite.listing.full_location }}<br>
+                                                <i class="bi bi-calendar me-1"></i> Added to favorites: {{ favorite.date_added|date:"M d, Y" }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i> You don't have any favorite listings yet. Browse listings and click the heart icon to add them to your favorites.
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Sidebar Ad -->
+            <div class="col-md-3">
+                {% for ad in ad_spaces %}
+                    {% if ad.location_on_page == 'sidebar' and ad.is_active %}
+                        <div class="sticky-top sidebar-ad" style="top: 20px;">
+                            {{ ad.ad_network_code|safe }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .btn-favorite {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-favorite:hover {
+            transform: scale(1.2);
+            transition: transform 0.2s;
+        }
+    </style>
+
+    <script>
+        function toggleFavorite(listingId) {
+            const form = document.getElementById('favorite-form-' + listingId);
+            const formData = new FormData(form);
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Just reload the page since we're removing from favorites
+                window.location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+{% endblock %} 

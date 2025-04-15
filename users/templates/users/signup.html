@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block title %}Sign Up{% endblock %}
+{% block extra_head %}
+<style>
+    .phone-input-group {
+        display: flex;
+    }
+    .country-code {
+        width: 140px;
+        flex-shrink: 0;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+    .phone-number {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+    label.required::after {
+        content: "*";
+        color: red;
+        margin-left: 4px;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Create Your Account</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <strong>Please correct the following errors:</strong>
+                                <ul>
+                                    {% for field, errors in form.errors.items %}
+                                        {% for error in errors %}
+                                            <li>{{ field }}: {{ error }}</li>
+                                        {% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label for="id_name" class="form-label required">Name</label>
+                            <input type="text" class="form-control" id="id_name" name="name" value="{{ form.name.value|default:'' }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_email" class="form-label required">Email</label>
+                            <input type="email" class="form-control" id="id_email" name="email" value="{{ form.email.value|default:'' }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_phone_number" class="form-label required">Phone Number</label>
+                            <div class="phone-input-group">
+                                <select class="form-select country-code" id="id_country_code" name="country_code">
+                                    {% for code, label in form.fields.country_code.choices %}
+                                        <option value="{{ code }}" {% if form.country_code.value == code %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <input type="text" class="form-control phone-number" id="id_phone_number" name="phone_number" value="{{ form.phone_number.value|default:'' }}" placeholder="Without country code" required>
+                            </div>
+                            <div class="form-text">
+                                For Egyptian numbers: Enter 10 digits (e.g., 1273477447) without the leading 0.<br>
+                                If you typically write 01273477447, please enter 1273477447 instead.
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="id_has_whatsapp" name="has_whatsapp" {% if form.has_whatsapp.value %}checked{% endif %}>
+                            <label class="form-check-label" for="id_has_whatsapp">This number has WhatsApp</label>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_password" class="form-label required">Password</label>
+                            <input type="password" class="form-control" id="id_password" name="password" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_password_confirm" class="form-label required">Confirm Password</label>
+                            <input type="password" class="form-control" id="id_password_confirm" name="password_confirm" required>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-person-plus-fill me-1"></i> Create Account
+                            </button>
+                            <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-1"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer">
+                    <p class="mb-3">Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+                    
+                    <div class="separator d-flex align-items-center mb-3">
+                        <hr class="flex-grow-1">
+                        <span class="mx-2 text-muted">or</span>
+                        <hr class="flex-grow-1">
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'google_login' %}" class="btn btn-outline-danger">
+                            <i class="bi bi-google me-2"></i> Sign up with Google
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
