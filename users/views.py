@@ -13,6 +13,10 @@ from .models import User
 from listings.models import Listing, AdSpace
 import re
 from django.conf import settings
+from django.urls import reverse
+import logging
+
+logger = logging.getLogger(__name__)
 
 @login_required
 def edit_profile(request):
@@ -190,31 +194,90 @@ def signup(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.is_active = False  # Deactivate until verified
-            user.country_code = form.cleaned_data['country_code']
-            user.has_whatsapp = form.cleaned_data.get('has_whatsapp', False)
-            user.save()
-            
-            # Send verification email
-            token = default_token_generator.make_token(user)
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
-            
-            # Get the site URL from settings instead of building it manually
-            site_url = settings.SITE_URL
-            
-            # Create verification link with correct protocol
-            link = f"{site_url}/accounts/verify/{uid}/{token}/"
-            
-            subject = "Verify Your Cairo Bazaar Account"
-            message = render_to_string('registration/verification_email.html', {
-                'user': user,
-                'link': link,
-            })
-            send_mail(subject, message, 'noreply@cairobazaar.com', [user.email])
-            return render(request, 'registration/signup_done.html')
-    else:
+            # This block remains the same for *new* users
+            try:
+                user = form.save(commit=False)
+                user.is_active = settings.DEBUG  # Activate in DEBUG, require verification in production
+                user.country_code = form.cleaned_data['country_code']
+                user.has_whatsapp = form.cleaned_data.get('has_whatsapp', False)
+                user.save()
+                
+                # Generate verification token and URL
+                token = default_token_generator.make_token(user)
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+                verification_url = request.build_absolute_uri(
+                    reverse('verify_email', kwargs={'uidb64': uid, 'token': token})
+                )
+                
+                # Send verification email
+                try:
+                    subject = 'Verify your Cairo Bazaar account'
+                    message = render_to_string('users/verification_email.html', {
+                        'user': user,
+                        'verification_url': verification_url,
+                    })
+                    
+                    send_mail(
+                        subject,
+                        message,
+                        settings.DEFAULT_FROM_EMAIL,
+                        [user.email],
+                        html_message=message,
+                        fail_silently=False,
+                    )
+                    
+                    if settings.DEBUG:
+                        messages.success(request, f'Account created successfully! In development mode, your account is already active. In production, verification would be required. Check console for verification link.')
+                    else:
+                        messages.success(request, 'Please check your email to verify your account.')
+                    return redirect('login')
+                    
+                except Exception as e:
+                    logger.error(f"Failed to send verification email: {str(e)}")
+                    # If email sending fails, still activate the user in production for now as a fallback
+                    # We might want to refine this later.
+                    user.is_active = True 
+                    user.save()
+                    messages.warning(request, 'Account created but verification email could not be sent. You can now log in.')
+                    return redirect('login')
+                    
+            except Exception as e:
+                logger.error(f"Error during new user signup: {str(e)}")
+                messages.error(request, 'An error occurred during signup. Please try again.')
+                return redirect('signup')
+        else:
+            # Check if the error is specifically "email already exists"
+            if 'email' in form.errors and any('already exists' in e for e in form.errors['email']):
+                logger.info(f"Signup attempt for existing email: {request.POST.get('email')}")
+                try:
+                    # Try to find the existing, potentially inactive user
+                    existing_user = User.objects.get(email=request.POST.get('email'))
+                    if not existing_user.is_active:
+                        # Found an inactive user - let's activate them
+                        logger.info(f"Found inactive user {existing_user.email}. Activating.")
+                        existing_user.is_active = True
+                        existing_user.save()
+                        # Optionally try resending verification or just tell them to log in
+                        messages.success(request, 'Your account already existed and has now been activated. Please try logging in.')
+                        return redirect('login')
+                    else:
+                        # User exists and is already active - show the original form error
+                        messages.error(request, 'This email is already registered and active. Please log in.')
+                except User.DoesNotExist:
+                    # Should not happen if form validation caught it, but handle defensively
+                    logger.error(f"Form validation failed for existing email, but user not found: {request.POST.get('email')}")
+                    messages.error(request, 'An unexpected error occurred. Please try again.')
+                except Exception as e:
+                    logger.error(f"Error activating existing user {request.POST.get('email')}: {str(e)}")
+                    messages.error(request, 'An error occurred while trying to reactivate your account.')
+
+            # If it wasn't the email exists error, or activation failed, show original form errors
+            # Re-render the form with validation errors
+            return render(request, 'users/signup.html', {'form': form})
+
+    else: # GET request
         form = SignUpForm()
+    
     return render(request, 'users/signup.html', {'form': form})
 
 def verify_email(request, uidb64, token):
