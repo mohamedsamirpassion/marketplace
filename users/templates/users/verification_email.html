@@ -36,7 +36,7 @@
 <body>
     <div class="container">
         <h2>Welcome to Cairo Bazaar!</h2>
-        <p>Hi {{ user.get_full_name|default:user.username }},</p>
+        <p>Hi {{ user.name }},</p>
         <p>Thank you for signing up! Please verify your email address by clicking the button below:</p>
         
         <a href="{{ verification_url }}" class="button">Verify Email Address</a>
@@ -44,7 +44,7 @@
         <p>If the button above doesn't work, you can copy and paste this link into your browser:</p>
         <p>{{ verification_url }}</p>
         
-        <p>This verification link will expire in 24 hours.</p>
+        <p>This verification link will expire soon.</p>
         
         <div class="footer">
             <p>If you didn't create an account with Cairo Bazaar, you can safely ignore this email.</p>
