@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     'listings.apps.ListingsConfig',
     'core.apps.CoreConfig',  # Add the core app
     'contact.apps.ContactConfig',  # Add the contact app
+    'storages',  # Add django-storages
 ]
 
 MIDDLEWARE = [
@@ -332,3 +333,35 @@ LOGGING = {
         },
     },
 }
+
+# AWS S3 Storage Settings (Production Only)
+if not DEBUG:
+    # Credentials and Bucket Info from Environment Variables
+    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+    AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME') # e.g., 'eu-north-1'
+
+    if all([AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME, AWS_S3_REGION_NAME]):
+        # Storage Backend
+        DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+        # Optional: If you want files to be stored in a 'media/' subfolder within the bucket
+        AWS_LOCATION = 'media' 
+
+        # Generate Media URL
+        AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com'
+        MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
+
+        # S3 Settings
+        AWS_DEFAULT_ACL = 'public-read' # Make files publicly readable by default
+        AWS_S3_OBJECT_PARAMETERS = {
+            'CacheControl': 'max-age=86400', # Cache files for 1 day
+        }
+        AWS_QUERYSTRING_AUTH = False # Do not add authentication parameters to URLs
+        AWS_HEADERS = { # Add Cache-Control header to uploads
+            'Cache-Control': 'max-age=86400',
+        }
+    else:
+        print("Warning: S3 storage credentials not fully configured. Media files might not work correctly in production.")
+# END AWS S3 Storage Settings
