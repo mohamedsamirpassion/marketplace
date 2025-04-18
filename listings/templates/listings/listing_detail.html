@@ -95,13 +95,19 @@
                                 </button>
                             {% endif %}
                         </form>
+                        
+                        <a href="{% url 'user_profile' user.id %}?tab=active" class="btn btn-outline-info ms-2 d-inline-block">
+                            <i class="bi bi-collection"></i> View My Other Listings
+                        </a>
                     </div>
                 {% endif %}
                 
                 <div class="mb-4 d-flex">
+                    {% if not is_owner %}
                     <a href="{% url 'user_profile' listing.seller.id %}" class="btn btn-outline-secondary me-2">
                         <i class="bi bi-list"></i> View Seller's Listings
                     </a>
+                    {% endif %}
                     
                     {% if user.is_authenticated and not is_owner %}
                         <form id="favorite-form" action="{% url 'toggle_favorite' listing.pk %}" method="post" class="me-2">
