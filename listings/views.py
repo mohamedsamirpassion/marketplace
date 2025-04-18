@@ -6,9 +6,9 @@ from django.core.paginator import Paginator
 from django.utils import timezone
 from .models import Listing, ListingImage, Model, AdSpace, Brand, PendingBrand, PendingModel, ListingReport, Favorite
 from .forms import ListingForm, ListingImageFormSet, PendingBrandForm, PendingModelForm
-import logging # Make sure logging is imported
+import logging
 
-logger = logging.getLogger(__name__) # Add logger instance
+logger = logging.getLogger(__name__)
 
 def home(request):
     listings = Listing.objects.filter(approved=True)
@@ -141,34 +141,52 @@ def listing_detail(request, pk):
 def create_listing(request):
     if request.method == 'POST':
         form = ListingForm(request.POST, request.FILES)
-        if form.is_valid():
-            try: # Add try block specifically around saving
-                listing = form.save(commit=False)
-                listing.seller = request.user
-                listing.approved = False
-                listing.save()
-                image_formset = ListingImageFormSet(request.POST, request.FILES, instance=listing, prefix='images')
-                if image_formset.is_valid():
-                    image_formset.save()
-                    form.save_m2m() # If you have many-to-many fields
+        # Initialize image_formset here to ensure it's available even if main form fails
+        image_formset = ListingImageFormSet(request.POST, request.FILES, prefix='images') 
+
+        if form.is_valid(): # Check main form first
+            # Don't save the main listing yet, wait until image formset is also valid
+            listing = form.save(commit=False) 
+            listing.seller = request.user
+            listing.approved = False # Listings require approval
+
+            if image_formset.is_valid(): # Now check image formset
+                try: # Wrap saving of both listing and images in one block
+                    listing.save() # Save main listing FIRST
+                    image_formset.instance = listing # Ensure instance is set before saving formset
+                    image_formset.save() # Save images (this should trigger S3 upload)
+                    # If you have M2M fields on the main form, save them after instance save
+                    # form.save_m2m() # Uncomment if needed for ListingForm
+                    
                     messages.success(request, "Your listing has been submitted successfully! One of our admins will review and approve it soon.")
                     return redirect('home')
-                else:
-                    messages.error(request, "Please correct the image upload errors below.")
-                    listing.delete()
-            except Exception as e:
-                # Log the FULL exception if saving fails
-                logger.error(f"Error saving listing or uploading image: {e}", exc_info=True)
-                messages.error(request, f'There was an error saving your listing. Please try again. Error: {e}')
-                # Return to the form, potentially with the same data but showing error
-                return render(request, 'listings/create_listing.html', {'form': form})
-        else:
-            messages.error(request, "Please correct the form errors below.")
-            image_formset = ListingImageFormSet(request.POST, request.FILES, prefix='images')
-    else:
+                except Exception as e:
+                    # Log the FULL exception if saving fails
+                    logger.error(f"Error saving listing or image formset: {e}", exc_info=True)
+                    messages.error(request, f'There was an error saving your listing. Please try again. Error: {e}')
+                    # We don't redirect here, we will fall through to re-render the form
+                    # Keep listing instance so form can potentially use it if needed (though it might be partially saved)
+
+            else:
+                # Image formset is invalid
+                logger.error(f"Image formset errors: {image_formset.errors}")
+                logger.error(f"Image formset non-form errors: {image_formset.non_form_errors()}")
+                messages.error(request, "Please correct the image upload errors below.")
+                # Don't save the listing instance if images are invalid
+
+        else: # Main form is invalid
+            # We might still have image_formset data if user submitted images
+            logger.error(f"Listing form errors: {form.errors}")
+            messages.error(request, "Please correct the main form errors below.")
+
+        # If we reach here, either form was invalid or image_formset was invalid, or save failed.
+        # Re-render the form with errors, passing both forms back.
+        return render(request, 'listings/create_listing.html', {'form': form, 'image_formset': image_formset})
+
+    else: # GET request
         form = ListingForm()
         image_formset = ListingImageFormSet(prefix='images')
-    return render(request, 'listings/create_listing.html', {'form': form, 'image_formset': image_formset})
+        return render(request, 'listings/create_listing.html', {'form': form, 'image_formset': image_formset})
 
 def get_models(request):
     try:
