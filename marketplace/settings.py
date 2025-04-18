@@ -71,7 +71,8 @@ INSTALLED_APPS = [
     'listings.apps.ListingsConfig',
     'core.apps.CoreConfig',  # Add the core app
     'contact.apps.ContactConfig',  # Add the contact app
-    'storages',  # Add django-storages
+    'cloudinary',  # Add cloudinary
+    'cloudinary_storage',  # Add cloudinary_storage
 ]
 
 MIDDLEWARE = [
@@ -334,49 +335,70 @@ LOGGING = {
     },
 }
 
-# AWS S3 Storage Settings (Production Only)
-if not DEBUG:
-    # Credentials and Bucket Info from Environment Variables
-    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-    AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
-    AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME') # e.g., 'eu-north-1'
-
-    # Debug S3 configuration
-    print("DEBUG: Checking AWS S3 configuration...")
-    print(f"DEBUG: AWS_ACCESS_KEY_ID exists: {bool(AWS_ACCESS_KEY_ID)}")
-    print(f"DEBUG: AWS_SECRET_ACCESS_KEY exists: {bool(AWS_SECRET_ACCESS_KEY)}")
-    print(f"DEBUG: AWS_STORAGE_BUCKET_NAME: {AWS_STORAGE_BUCKET_NAME}")
-    print(f"DEBUG: AWS_S3_REGION_NAME: {AWS_S3_REGION_NAME}")
-
-    if all([AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME, AWS_S3_REGION_NAME]):
-        print(f"DEBUG: AWS S3 configuration COMPLETE - using bucket: {AWS_STORAGE_BUCKET_NAME} in region: {AWS_S3_REGION_NAME}")
-        # Storage Backend
-        DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-
-        # Optional: If you want files to be stored in a 'media/' subfolder within the bucket
-        AWS_LOCATION = 'media' 
-
-        # Generate Media URL
-        AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com'
-        MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
-
-        # S3 Settings
-        AWS_DEFAULT_ACL = 'public-read' # Make files publicly readable by default
-        AWS_S3_OBJECT_PARAMETERS = {
-            'CacheControl': 'max-age=86400', # Cache files for 1 day
-        }
-        AWS_QUERYSTRING_AUTH = False # Do not add authentication parameters to URLs
-        AWS_HEADERS = { # Add Cache-Control header to uploads
-            'Cache-Control': 'max-age=86400',
-        }
-        print(f"DEBUG: MEDIA_URL set to: {MEDIA_URL}")
-    else:
-        missing = []
-        if not AWS_ACCESS_KEY_ID: missing.append("AWS_ACCESS_KEY_ID")
-        if not AWS_SECRET_ACCESS_KEY: missing.append("AWS_SECRET_ACCESS_KEY")
-        if not AWS_STORAGE_BUCKET_NAME: missing.append("AWS_STORAGE_BUCKET_NAME")
-        if not AWS_S3_REGION_NAME: missing.append("AWS_S3_REGION_NAME")
-        print(f"WARNING: AWS S3 storage credentials not fully configured. Missing: {', '.join(missing)}")
-        print("WARNING: Media files might not work correctly in production.")
+# AWS S3 Storage Settings (Production Only) - COMMENT OUT OR REMOVE
+# if not DEBUG:
+#     # Credentials and Bucket Info from Environment Variables
+#     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+#     AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+#     AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+#     AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME') # e.g., 'eu-north-1'
+# 
+#     # Debug S3 configuration
+#     print("DEBUG: Checking AWS S3 configuration...")
+#     print(f"DEBUG: AWS_ACCESS_KEY_ID exists: {bool(AWS_ACCESS_KEY_ID)}")
+#     print(f"DEBUG: AWS_SECRET_ACCESS_KEY exists: {bool(AWS_SECRET_ACCESS_KEY)}")
+#     print(f"DEBUG: AWS_STORAGE_BUCKET_NAME: {AWS_STORAGE_BUCKET_NAME}")
+#     print(f"DEBUG: AWS_S3_REGION_NAME: {AWS_S3_REGION_NAME}")
+# 
+#     if all([AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME, AWS_S3_REGION_NAME]):
+#         print(f"DEBUG: AWS S3 configuration COMPLETE - using bucket: {AWS_STORAGE_BUCKET_NAME} in region: {AWS_S3_REGION_NAME}")
+#         # Storage Backend
+#         DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+# 
+#         # Optional: If you want files to be stored in a 'media/' subfolder within the bucket
+#         AWS_LOCATION = 'media' 
+# 
+#         # Generate Media URL
+#         AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com'
+#         MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
+# 
+#         # S3 Settings
+#         AWS_DEFAULT_ACL = 'public-read' # Make files publicly readable by default
+#         AWS_S3_OBJECT_PARAMETERS = {
+#             'CacheControl': 'max-age=86400', # Cache files for 1 day
+#         }
+#         AWS_QUERYSTRING_AUTH = False # Do not add authentication parameters to URLs
+#         AWS_HEADERS = { # Add Cache-Control header to uploads
+#             'Cache-Control': 'max-age=86400',
+#         }
+#         print(f"DEBUG: MEDIA_URL set to: {MEDIA_URL}")
+#     else:
+#         missing = []
+#         if not AWS_ACCESS_KEY_ID: missing.append("AWS_ACCESS_KEY_ID")
+#         if not AWS_SECRET_ACCESS_KEY: missing.append("AWS_SECRET_ACCESS_KEY")
+#         if not AWS_STORAGE_BUCKET_NAME: missing.append("AWS_STORAGE_BUCKET_NAME")
+#         if not AWS_S3_REGION_NAME: missing.append("AWS_S3_REGION_NAME")
+#         print(f"WARNING: AWS S3 storage credentials not fully configured. Missing: {', '.join(missing)}")
+#         print("WARNING: Media files might not work correctly in production.")
 # END AWS S3 Storage Settings
+
+# Cloudinary settings
+if not DEBUG:
+    print("DEBUG: Setting up Cloudinary storage...")
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+        'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+        'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET')
+    }
+    
+    print(f"DEBUG: CLOUDINARY_CLOUD_NAME exists: {bool(os.environ.get('CLOUDINARY_CLOUD_NAME'))}")
+    print(f"DEBUG: CLOUDINARY_API_KEY exists: {bool(os.environ.get('CLOUDINARY_API_KEY'))}")
+    print(f"DEBUG: CLOUDINARY_API_SECRET exists: {bool(os.environ.get('CLOUDINARY_API_SECRET'))}")
+    
+    if all([os.environ.get('CLOUDINARY_CLOUD_NAME'), os.environ.get('CLOUDINARY_API_KEY'), os.environ.get('CLOUDINARY_API_SECRET')]):
+        print("DEBUG: Cloudinary configuration COMPLETE")
+        DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+        print(f"DEBUG: Using Cloudinary for media storage")
+    else:
+        print("WARNING: Cloudinary credentials not fully configured. Media files might not work correctly in production.")
+# END Cloudinary Settings
