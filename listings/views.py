@@ -6,6 +6,9 @@ from django.core.paginator import Paginator
 from django.utils import timezone
 from .models import Listing, ListingImage, Model, AdSpace, Brand, PendingBrand, PendingModel, ListingReport, Favorite
 from .forms import ListingForm, ListingImageFormSet, PendingBrandForm, PendingModelForm
+import logging # Make sure logging is imported
+
+logger = logging.getLogger(__name__) # Add logger instance
 
 def home(request):
     listings = Listing.objects.filter(approved=True)
@@ -137,20 +140,28 @@ def listing_detail(request, pk):
 @login_required
 def create_listing(request):
     if request.method == 'POST':
-        form = ListingForm(request.POST)
+        form = ListingForm(request.POST, request.FILES)
         if form.is_valid():
-            listing = form.save(commit=False)
-            listing.seller = request.user
-            listing.approved = False
-            listing.save()
-            image_formset = ListingImageFormSet(request.POST, request.FILES, instance=listing, prefix='images')
-            if image_formset.is_valid():
-                image_formset.save()
-                messages.success(request, "Your listing has been submitted successfully! One of our admins will review and approve it soon.")
-                return redirect('home')
-            else:
-                messages.error(request, "Please correct the image upload errors below.")
-                listing.delete()
+            try: # Add try block specifically around saving
+                listing = form.save(commit=False)
+                listing.seller = request.user
+                listing.approved = False
+                listing.save()
+                image_formset = ListingImageFormSet(request.POST, request.FILES, instance=listing, prefix='images')
+                if image_formset.is_valid():
+                    image_formset.save()
+                    form.save_m2m() # If you have many-to-many fields
+                    messages.success(request, "Your listing has been submitted successfully! One of our admins will review and approve it soon.")
+                    return redirect('home')
+                else:
+                    messages.error(request, "Please correct the image upload errors below.")
+                    listing.delete()
+            except Exception as e:
+                # Log the FULL exception if saving fails
+                logger.error(f"Error saving listing or uploading image: {e}", exc_info=True)
+                messages.error(request, f'There was an error saving your listing. Please try again. Error: {e}')
+                # Return to the form, potentially with the same data but showing error
+                return render(request, 'listings/create_listing.html', {'form': form})
         else:
             messages.error(request, "Please correct the form errors below.")
             image_formset = ListingImageFormSet(request.POST, request.FILES, prefix='images')
