@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Test Cloudinary Upload" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">{% trans "Test Cloudinary Upload" %}</h4>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                    <div class="alert alert-danger">
+                        {{ error }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if success %}
+                    <div class="alert alert-success">
+                        {% trans "Upload successful!" %}
+                    </div>
+                    <div class="text-center my-4">
+                        <img src="{{ url }}" class="img-fluid rounded" style="max-height: 300px;">
+                        <p class="mt-2">{% trans "Image URL:" %} <a href="{{ url }}" target="_blank">{{ url }}</a></p>
+                    </div>
+                    {% endif %}
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="imageUpload" class="form-label">{% trans "Select image to upload" %}</label>
+                            <input type="file" class="form-control" id="imageUpload" name="image" accept="image/*" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">{% trans "Upload" %}</button>
+                    </form>
+                </div>
+            </div>
+            
+            {% if result %}
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">{% trans "Cloudinary Upload Result" %}</h5>
+                </div>
+                <div class="card-body">
+                    <pre>{{ result }}</pre>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

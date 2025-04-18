@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 from listings.admin import report_dashboard
 from django.contrib.admin.views.decorators import staff_member_required
 from django.conf.urls.i18n import i18n_patterns
+from core.views import test_upload, cloudinary_test
 
 # URLs that don't need to be translated
 urlpatterns = [
@@ -16,6 +17,8 @@ urlpatterns = [
 # Add non-i18n patterns that should still work without language prefix
 urlpatterns += [
     path('', include('listings.urls')),  # Include all listings URLs at the root level too
+    path('test-upload/', test_upload, name='test_upload'),  # Direct access to test_upload
+    path('cloudinary-test/', cloudinary_test, name='cloudinary_test'),  # Direct access to cloudinary_test
 ]
 
 # URLs that should be translated - all our main app URLs
