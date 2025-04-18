@@ -342,7 +342,15 @@ if not DEBUG:
     AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
     AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME') # e.g., 'eu-north-1'
 
+    # Debug S3 configuration
+    print("DEBUG: Checking AWS S3 configuration...")
+    print(f"DEBUG: AWS_ACCESS_KEY_ID exists: {bool(AWS_ACCESS_KEY_ID)}")
+    print(f"DEBUG: AWS_SECRET_ACCESS_KEY exists: {bool(AWS_SECRET_ACCESS_KEY)}")
+    print(f"DEBUG: AWS_STORAGE_BUCKET_NAME: {AWS_STORAGE_BUCKET_NAME}")
+    print(f"DEBUG: AWS_S3_REGION_NAME: {AWS_S3_REGION_NAME}")
+
     if all([AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME, AWS_S3_REGION_NAME]):
+        print(f"DEBUG: AWS S3 configuration COMPLETE - using bucket: {AWS_STORAGE_BUCKET_NAME} in region: {AWS_S3_REGION_NAME}")
         # Storage Backend
         DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
@@ -362,6 +370,13 @@ if not DEBUG:
         AWS_HEADERS = { # Add Cache-Control header to uploads
             'Cache-Control': 'max-age=86400',
         }
+        print(f"DEBUG: MEDIA_URL set to: {MEDIA_URL}")
     else:
-        print("Warning: S3 storage credentials not fully configured. Media files might not work correctly in production.")
+        missing = []
+        if not AWS_ACCESS_KEY_ID: missing.append("AWS_ACCESS_KEY_ID")
+        if not AWS_SECRET_ACCESS_KEY: missing.append("AWS_SECRET_ACCESS_KEY")
+        if not AWS_STORAGE_BUCKET_NAME: missing.append("AWS_STORAGE_BUCKET_NAME")
+        if not AWS_S3_REGION_NAME: missing.append("AWS_S3_REGION_NAME")
+        print(f"WARNING: AWS S3 storage credentials not fully configured. Missing: {', '.join(missing)}")
+        print("WARNING: Media files might not work correctly in production.")
 # END AWS S3 Storage Settings
