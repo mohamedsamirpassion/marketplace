@@ -198,19 +198,29 @@ if DEBUG:
     # Use console backend for development
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
-    # Use SMTP backend for production
+    # Use AWS SES for production
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
+    EMAIL_HOST = os.environ.get('EMAIL_HOST', 'email-smtp.eu-north-1.amazonaws.com')
     EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
     EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
     EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
     EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-
-DEFAULT_FROM_EMAIL = 'noreply@cairobazaar.com'
-
+    
+    # Update the default from email to match verified sender in SES
+    if os.environ.get('DEFAULT_FROM_EMAIL'):
+        DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
+    else:
+        DEFAULT_FROM_EMAIL = 'noreply@cairobazaar.app'
+        
+    # Log email configuration (for debugging)
+    print(f"Email configuration: {EMAIL_HOST}:{EMAIL_PORT}")
+    print(f"EMAIL_HOST_USER set: {bool(EMAIL_HOST_USER)}")
+    print(f"EMAIL_HOST_PASSWORD set: {bool(EMAIL_HOST_PASSWORD)}")
+    print(f"DEFAULT_FROM_EMAIL: {DEFAULT_FROM_EMAIL}")
+    
 # Site URL for absolute URLs in emails and admin functions
 # Get from environment variable if available, otherwise use defaults
-SITE_URL = os.environ.get('SITE_URL', 'http://127.0.0.1:8000' if DEBUG else 'https://cairo-bazaar.onrender.com')
+SITE_URL = os.environ.get('SITE_URL', 'http://127.0.0.1:8000' if DEBUG else 'https://cairobazaar.app')
 
 # Django Allauth settings
 AUTHENTICATION_BACKENDS = [
