@@ -197,6 +197,8 @@ def signup(request):
             # This block remains the same for *new* users
             try:
                 user = form.save(commit=False)
+                # Set the password explicitly
+                user.set_password(form.cleaned_data['password'])
                 # Always activate the user immediately regardless of DEBUG setting
                 user.is_active = True  # Changed: Always activate users
                 user.is_verified = True  # Mark as verified to avoid verification issues
