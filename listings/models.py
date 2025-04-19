@@ -2,6 +2,9 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+import cloudinary
+import cloudinary.uploader
+from cloudinary.models import CloudinaryField
 
 User = get_user_model()
 
@@ -125,7 +128,10 @@ class Listing(models.Model):
 
 class ListingImage(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='listing_images/')
+    image = CloudinaryField('image')
+    
+    def get_url(self):
+        return self.image.url
 
 class AdSpace(models.Model):
     LOCATION_CHOICES = [
