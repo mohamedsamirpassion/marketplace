@@ -238,7 +238,11 @@
                                             <div class="carousel-inner">
                                                 {% for image in listing.images.all %}
                                                     <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                                                        <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ listing.brand.name }} {{ listing.model.name }}" style="height: 200px; object-fit: cover; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem;">
+                                                        {% if 'cloudinary' in image.image.url %}
+                                                            <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ listing.brand.name }} {{ listing.model.name }}" style="height: 200px; object-fit: cover; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem;">
+                                                        {% else %}
+                                                            <img src="https://res.cloudinary.com/dfg1q6v9x/image/upload/v1714067089/default-car_rfesxy.jpg" class="d-block w-100" alt="{{ listing.brand.name }} {{ listing.model.name }}" style="height: 200px; object-fit: cover; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem;">
+                                                        {% endif %}
                                                     </div>
                                                 {% endfor %}
                                             </div>
