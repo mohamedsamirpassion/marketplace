@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 def home(request):
-    listings = Listing.objects.filter(approved=True)
+    listings = Listing.objects.filter(approved=True, is_sold=False)
     ad_spaces = AdSpace.objects.filter(is_active=True)
     
     # Get filter parameters from the request
