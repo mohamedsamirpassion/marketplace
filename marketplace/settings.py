@@ -324,14 +324,6 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Use database-backed se
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Configure database for production
-import dj_database_url
-if not DEBUG:
-    # Parse database URL without forcing SSL
-    DATABASES = {
-        'default': dj_database_url.config(conn_max_age=600, ssl_require=False)
-    }
-    
 # Configure HTTPS settings for production
 if not DEBUG:
     CSRF_COOKIE_SECURE = True
