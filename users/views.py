@@ -197,7 +197,9 @@ def signup(request):
             # This block remains the same for *new* users
             try:
                 user = form.save(commit=False)
-                user.is_active = settings.DEBUG  # Activate in DEBUG, require verification in production
+                # Always activate the user immediately regardless of DEBUG setting
+                user.is_active = True  # Changed: Always activate users
+                user.is_verified = True  # Mark as verified to avoid verification issues
                 user.country_code = form.cleaned_data['country_code']
                 user.has_whatsapp = form.cleaned_data.get('has_whatsapp', False)
                 user.save()
@@ -209,7 +211,7 @@ def signup(request):
                     reverse('verify_email', kwargs={'uidb64': uid, 'token': token})
                 )
                 
-                # Send verification email
+                # Still try to send verification email, but don't require it for activation
                 try:
                     subject = 'Verify your Cairo Bazaar account'
                     message = render_to_string('users/verification_email.html', {
@@ -226,19 +228,14 @@ def signup(request):
                         fail_silently=False,
                     )
                     
-                    if settings.DEBUG:
-                        messages.success(request, f'Account created successfully! In development mode, your account is already active. In production, verification would be required. Check console for verification link.')
-                    else:
-                        messages.success(request, 'Please check your email to verify your account.')
+                    # Since user is already active, just inform them they can log in
+                    messages.success(request, 'Account created successfully! You can now log in. We also sent a confirmation email.')
                     return redirect('login')
                     
                 except Exception as e:
                     logger.error(f"Failed to send verification email: {str(e)}")
-                    # If email sending fails, still activate the user in production for now as a fallback
-                    # We might want to refine this later.
-                    user.is_active = True 
-                    user.save()
-                    messages.warning(request, 'Account created but verification email could not be sent. You can now log in.')
+                    # User is already active, just inform them they can log in
+                    messages.success(request, 'Account created successfully! You can now log in.')
                     return redirect('login')
                     
             except Exception as e:
