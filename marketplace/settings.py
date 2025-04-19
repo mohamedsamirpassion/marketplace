@@ -42,7 +42,9 @@ if not DEBUG:
         '.up.railway.app',
         '.onrender.com',
         '.cairobazaar.com',  # For future domain
-        'cairo-bazaar.onrender.com'  # Added for Render domain
+        'cairo-bazaar.onrender.com',  # Added for Render domain
+        'cairobazaar.app',  # Added for custom domain
+        '.cairobazaar.app'  # Include all subdomains
     ])
 
 # Application definition
