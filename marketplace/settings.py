@@ -118,33 +118,26 @@ WSGI_APPLICATION = 'marketplace.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-if DEBUG:
-    # Use SQLite for local development
+import dj_database_url
+
+# Get DATABASE_URL from environment
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if DATABASE_URL:
+    # If DATABASE_URL is available, use PostgreSQL
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL)
+    }
+    print("Using PostgreSQL database from DATABASE_URL")
+else:
+    # Otherwise, fallback to SQLite for local development
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-else:
-    # Use PostgreSQL for production (Render)
-    # Parse database URL from environment variable
-    import dj_database_url
-    
-    DATABASE_URL = os.environ.get('DATABASE_URL')
-    if DATABASE_URL:
-        DATABASES = {
-            'default': dj_database_url.parse(DATABASE_URL)
-        }
-    else:
-        # Fall back to SQLite if no DATABASE_URL is provided
-        # Note: This is not recommended for production
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
-            }
-        }
+    print("Using SQLite database (DATABASE_URL not found)")
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
