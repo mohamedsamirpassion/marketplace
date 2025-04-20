@@ -2,7 +2,7 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('users', '0009_remove_user_username_field'),  # Make sure this matches your previous migration
+        ('users', '0001_initial'),  # Changed to reference the initial migration
     ]
 
     operations = [
